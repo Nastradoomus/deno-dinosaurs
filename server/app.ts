@@ -14,18 +14,33 @@
                            |||_   <<   >> ||   \\,-.    \\        \\    >>  ||>>_    ||>>_
                           (__)_) (__) (__)(_")  (_/    (__)      (__)  (__)(__)__)  (__)__)
 */
+
+//CONSOLE
+import * as Colors from "https://deno.land/std/fmt/colors.ts";
+
+//ENV
+import "https://deno.land/x/dotenv/load.ts";
+
+//MONGODB
+import MongoDb from "./components/db/db.ts";
+
+//INTERFACE
+import Dinosaur from "./components/interfaces/dinosaur.ts";
+//SCHEMA
+import DinosaurSchema from "./components/schema/dinosaur.ts";
+
+//CONTROLLERS
+import dinosaursController from "./components/controllers/dinosaurs.ts";
+
+//ROUTES
+import Router from "./components/routes/dinosaurs.ts";
+
+//OAK
 import {
   Application,
   isHttpError,
   Status,
-  Router,
 } from "https://deno.land/x/oak/mod.ts";
-import "https://deno.land/x/dotenv/load.ts";
-
-import * as Colors from "https://deno.land/std/fmt/colors.ts";
-
-import MongoDb from "./components/db/db.ts";
-import Dinosaur from "./components/schema/schema.ts";
 
 //Shorts
 const log = Colors;
@@ -65,18 +80,23 @@ let dino = {
     "https://upload.wikimedia.org/wikipedia/commons/9/94/Tyrannosaurus_Rex_Holotype.jpg",
 };
 
+/*
 const trex = new Dinosaur(
   dino.name,
   dino.description,
   dino.image,
 );
+*/
 
-if (await trex.validate()) {
-  console.log("JEs!");
+const trex = new DinosaurSchema(
+  dino.name,
+  dino.description,
+  dino.image,
+);
+
+if (await trex.validate() === false) {
+  console.log("Promise rejected: Data is handled as invalid!");
 }
-await db.list();
-await db.add();
-await db.remove();
 
 interface Book {
   readonly id: number;
@@ -99,18 +119,9 @@ books.set(1, {
   author: "Conan the Cunt",
 });
 
+//const router = new Router();
 /*
-   ____    U  ___ u   _   _  _____  U _____ u   ____
-U |  _"\ u  \/"_ \/U |"|u| ||_ " _| \| ___"|/U |  _"\ u
- \| |_) |/  | | | | \| |\| |  | |    |  _|"   \| |_) |/
-  |  _ <.-,_| |_| |  | |_| | /| |\   | |___    |  _ <
-  |_| \_\\_)-\___/  <<\___/ u |_|U   |_____|   |_| \_\
-  //   \\_    \\   (__) )(  _// \\_  <<   >>   //   \\_
- (__)  (__)  (__)      (__)(__) (__)(__) (__) (__)  (__)
- */
-
-const router = new Router();
-router
+ router
   .get("/", (c) => {
     c.response.body = "🦕 Welcome to my simple Deno server";
   })
@@ -138,14 +149,8 @@ router
   })
   .post("/dinosaur", async (c) => {
     console.log(c.request.body);
-    /*
-    let dino = new Dinosaur()
-    if (await c.request.body.validate()) {
-      console.log("Good to add!");
-    }
-    */
   });
-
+*/
 /*
   ____   U _____ u   ____   __     __ U _____ u
  / __"| u\| ___"|/U |  _"\ u\ \   /"/u\| ___"|/
@@ -161,8 +166,8 @@ const app = new Application();
 const controller = new AbortController();
 const { signal } = controller;
 
-app.use(router.routes());
-app.use(router.allowedMethods());
+app.use(Router.routes());
+app.use(Router.allowedMethods());
 
 app.use(async (c, next) => {
   try {
