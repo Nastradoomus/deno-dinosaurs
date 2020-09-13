@@ -22,8 +22,5 @@ module.exports = {
     rules: {
         'no-console': 'off',
         'prettier/prettier': 'error',
-        'react/jsx-filename-extension': [1, { extensions: ['.js', '.ts'] }],
-        'react/forbid-prop-types': [0, { forbid: ['any'] }],
-        'react/prop-types': 0,
     },
 };
