@@ -4,7 +4,7 @@
 2. Get [Velociraptor](https://github.com/umbopepato/velociraptor)
 3. Run vr serve
 
-###Recommended for windows:
+### Recommended for windows:
 
 1. VSCode
 2. WSL (Windows subsystem for Linux). Command prompt currently breaks watch with dotenv.
