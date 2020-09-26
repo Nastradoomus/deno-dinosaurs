@@ -18,19 +18,11 @@
 //CONSOLE
 import * as Colors from "https://deno.land/std/fmt/colors.ts";
 
-//ENV
-import "https://deno.land/x/dotenv/load.ts";
-
-//MONGODB
-import MongoDb from "./components/db/db.ts";
-
 //INTERFACE
-import Dinosaur from "./components/interfaces/dinosaur.ts";
+import type { Dinosaur } from "./components/interfaces/dinosaur.ts";
+
 //SCHEMA
 import DinosaurSchema from "./components/schema/dinosaur.ts";
-
-//CONTROLLERS
-import dinosaursController from "./components/controllers/dinosaurs.ts";
 
 //ROUTES
 import Router from "./components/routes/dinosaurs.ts";
@@ -38,8 +30,6 @@ import Router from "./components/routes/dinosaurs.ts";
 //OAK
 import {
   Application,
-  isHttpError,
-  Status,
 } from "https://deno.land/x/oak/mod.ts";
 
 //Shorts
@@ -47,110 +37,6 @@ const log = Colors;
 
 console.log(log.cyan("🦕 Welcome to Deno"));
 
-/*
-U _____ u _   _  __     __
-\| ___"|/| \ |"| \ \   /"/u
- |  _|" <|  \| |> \ \ / //
- | |___ U| |\  |u /\ V /_,-.
- |_____| |_| \_| U  \_/-(_/
- <<   >> ||   \\,-.//
-(__) (__)(_")  (_/(__)
-*/
-
-const E = Deno.env.toObject();
-/*
-  __  __    U  ___ u  _   _     ____    U  ___ u  ____    ____
-U|' \/ '|u   \/"_ \/ | \ |"| U /"___|u   \/"_ \/ |  _"\U | __")u
-\| |\/| |/   | | | |<|  \| |>\| |  _ /   | | | |/| | | |\|  _ \/
- | |  | |.-,_| |_| |U| |\  |u | |_| |.-,_| |_| |U| |_| |\| |_) |
- |_|  |_| \_)-\___/  |_| \_|   \____| \_)-\___/  |____/ u|____/
-<<,-,,-.       \\    ||   \\,-._)(|_       \\     |||_  _|| \\_
- (./  \.)     (__)   (_")  (_/(__)__)     (__)   (__)_)(__) (__)
-*/
-
-if (!E.SERVER) E.SERVER = "localhost:27017";
-const db = new MongoDb(E.SERVER, E.UN, E.PW, E.DB);
-//Db.print();
-db.init();
-
-let dino = {
-  name: "T-rex",
-  description: "Really big!",
-  image:
-    "https://upload.wikimedia.org/wikipedia/commons/9/94/Tyrannosaurus_Rex_Holotype.jpg",
-};
-
-/*
-const trex = new Dinosaur(
-  dino.name,
-  dino.description,
-  dino.image,
-);
-*/
-
-const trex = new DinosaurSchema(
-  dino.name,
-  dino.description,
-  dino.image,
-);
-
-if (await trex.validate() === false) {
-  console.log("Promise rejected: Data is handled as invalid!");
-}
-
-interface Book {
-  readonly id: number;
-  title: string;
-  author: string;
-  image?: string;
-}
-
-const books = new Map<number, Book>();
-
-books.set(0, {
-  id: 0,
-  title: "The Hound of the Baskervilles",
-  author: "Conan Doyle, Arthur",
-});
-
-books.set(1, {
-  id: 1,
-  title: "Fuck off",
-  author: "Conan the Cunt",
-});
-
-//const router = new Router();
-/*
- router
-  .get("/", (c) => {
-    c.response.body = "🦕 Welcome to my simple Deno server";
-  })
-  .get("/dinosaurs", (c) => {
-    c.response.body = trex;
-  })
-  .get("/books", (c) => {
-    c.response.body = Array.from(books.values());
-  })
-  .get("/book/:id", (c) => {
-    if (c.params && c.params.id) {
-      if (parseInt(c.params.id)) {
-        const id = parseInt(c.params.id);
-        if (books.has(id)) {
-          c.response.body = books.get(id);
-        } else {
-          console.log(log.red("❌ E! False ID"));
-          c.throw(404, "❌ Your stupid book isn't here!");
-        }
-      } else {
-        console.log(log.red("❌ E! NaN"));
-        c.throw(404, "🧨 That's not even a book!");
-      }
-    }
-  })
-  .post("/dinosaur", async (c) => {
-    console.log(c.request.body);
-  });
-*/
 /*
   ____   U _____ u   ____   __     __ U _____ u
  / __"| u\| ___"|/U |  _"\ u\ \   /"/u\| ___"|/
@@ -169,39 +55,12 @@ const { signal } = controller;
 app.use(Router.routes());
 app.use(Router.allowedMethods());
 
-app.use(async (c, next) => {
-  try {
-    await next();
-  } catch (err) {
-    if (isHttpError(err)) {
-      switch (err.status) {
-        case Status.NotFound:
-          // handle NotFound
-          break;
-        default:
-          // handle other statuses
-      }
-    } else {
-      // rethrow if you can't handle the error
-      throw err;
-    }
-  }
-});
-
 app.addEventListener("listen", ({ hostname, port, secure }) => {
   console.log(log.blue(
     `👂 ${secure ? "https://" : "http://"}${hostname ??
       "localhost"}:${port}`,
   ));
 });
-
-// Later version of deno
-/*
-async function listenPromise() {
-  app.listen({ port: 1337, signal });
-}
-await listenPromise;
-*/
 
 const listenPromise = app.listen({ port: 1337, signal });
 

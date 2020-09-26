@@ -1,5 +1,6 @@
 import * as yup from "https://cdn.skypack.dev/pin/yup@v0.29.3-ZzqjmuxJFzKiUPDYHsl3/min/yup.js";
 import * as Colors from "https://deno.land/std/fmt/colors.ts";
+import { slugify } from "../helpers/slugify.ts";
 
 /*
   ____      ____   _   _  U _____ u  __  __      _
@@ -17,38 +18,40 @@ const log = Colors;
 
 export default class Schema {
   name: string;
+  slug: string;
   description: string;
   image?: string;
-  id?: number;
-  //#valid: boolean = false;
   constructor(
     name: string,
+    slug: string,
     description: string,
     image?: string,
-    id?: number,
   ) {
     this.name = name;
+    this.slug = slugify(slug);
     this.description = description;
-    if (this.image) this.image = image;
-    if (this.id) this.id = id;
+    this.image = image;
+    if (typeof this.image === "string") this.image = image;
   }
 
   async validate() {
     const schema = yup.object({
-      name: yup.string().trim().min(2).required(),
-      description: yup.string().trim().min(3).required(),
+      name: yup.string().trim().min(3).required(),
+      slug: yup.string().trim().min(3).required(),
+      description: yup.string().trim().min(5).required(),
       image: yup.string().trim().url(),
     });
+
     const o = {
       "name": this.name,
+      "slug": this.slug,
       "description": this.description,
       "image": this.image,
     };
     const isvalid = schema.isValid(o);
     if (await isvalid === true) {
-      //this.#valid = true;
       console.log(
-        log.green(log.bold("🐉 Dinosaur is valid")),
+        log.green(log.bold("🐉 New Dinosaur is valid")),
       );
     } else {
       schema.validate(o).catch(function (err: Record<string, unknown>) {

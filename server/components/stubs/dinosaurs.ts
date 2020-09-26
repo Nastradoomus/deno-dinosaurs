@@ -12,11 +12,12 @@
 import { v4 } from "https://deno.land/std/uuid/mod.ts";
 
 //INTERFACE
-import Dinosaur from "../interfaces/dinosaur.ts";
+import type { Dinosaur } from "../interfaces/dinosaur.ts";
 
 let dinosaurs: Dinosaur[] = [
   {
     name: "Archosaur",
+    slug: "archosaur",
     description:
       "Archosaurs are a group of diapsids and are broadly classified as reptiles. The living representatives of this group consist of birds and crocodilians. This group also includes all extinct dinosaurs, pterosaurs, and extinct close relatives of crocodilians.",
     image:
@@ -25,6 +26,7 @@ let dinosaurs: Dinosaur[] = [
   },
   {
     name: "Tyrannosaurus",
+    slug: "tyrannosaurus",
     description:
       'Tyrannosaurus[nb 1] is a genus of coelurosaurian theropod dinosaur. The species Tyrannosaurus rex (rex meaning "king" in Latin), often called T. rex or colloquially T-Rex, is one of the most well-represented of the large theropods. Tyrannosaurus lived throughout what is now western North America, on what was then an island continent known as Laramidia.',
     image:

@@ -16,25 +16,31 @@ import Controller from "../controllers/controller.ts";
 import dinosaursController from "../controllers/dinosaurs.ts";
 
 const router = new Router();
+let id: string;
 
 router
   .get("/", Controller.default)
   .get("/dinosaurs", dinosaursController.getDinosaurs)
-  .post("/dinosaur", (c) => dinosaursController.addDinosaur(c))
-  .get("/dinosaur/:id", (c) => {
-    let id: string = "";
-    if (c.params.id) id = c.params.id;
-    dinosaursController.getDinosaur(c, id);
+  .get("/dinosaur", (c) => {
+    const { response } = c;
+    response.status = 405;
+    response.body = {
+      success: false,
+      data: "❌ Check your slug!",
+    };
   })
-  .put("/dinosaur/:id", (c) => {
-    let id: string = "";
+  .get("/dinosaur/:id", async (c) => {
     if (c.params.id) id = c.params.id;
-    dinosaursController.updateDinosaur(c, id);
+    await dinosaursController.getDinosaur(c, id);
   })
-  .delete("/dinosaur/:id", (c) => {
-    let id: string = "";
+  .post("/dinosaur", async (c) => dinosaursController.addDinosaur(c))
+  .put("/dinosaur/:id", async (c) => {
     if (c.params.id) id = c.params.id;
-    dinosaursController.deleteDinosaur(c, id);
+    await dinosaursController.updateDinosaur(c, id);
+  })
+  .delete("/dinosaur/:id", async (c) => {
+    if (c.params.id) id = c.params.id;
+    await dinosaursController.deleteDinosaur(c, id);
   });
 
 export default router;

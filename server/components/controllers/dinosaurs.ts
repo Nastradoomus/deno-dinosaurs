@@ -9,13 +9,25 @@ U /"___|   \/"_ \/ | \ |"|   |_ " _|U |  _"\ u  \/"_ \/  |"|     |"|    \| ___"|
 */
 
 // REQUEST & RESPONSE
-import { Response, Context } from "https://deno.land/x/oak/mod.ts";
+import type {
+  Response,
+  Context,
+} from "https://deno.land/x/oak/mod.ts";
+
+//ENV
+import dotenv from "https://raw.githubusercontent.com/AM-77/deno-dotenv/master/mod.ts";
+
+//MONGODB
+import MongoDb from "../db/db.ts";
 
 // INTERFACE
-import Dinosaur from "../interfaces/dinosaur.ts";
+import type { Dinosaur } from "../interfaces/dinosaur.ts";
 
 // STUBS
-import dinosaurs from "../stubs/dinosaurs.ts";
+import stubDinosaurs from "../stubs/dinosaurs.ts";
+
+//SCHEMA
+import DinosaurSchema from "../schema/dinosaur.ts";
 
 //CONSOLE
 import * as Colors from "https://deno.land/std/fmt/colors.ts";
@@ -23,104 +35,180 @@ import * as Colors from "https://deno.land/std/fmt/colors.ts";
 //Shorts
 const log = Colors;
 
+/*
+U _____ u _   _  __     __
+\| ___"|/| \ |"| \ \   /"/u
+ |  _|" <|  \| |> \ \ / //
+ | |___ U| |\  |u /\ V /_,-.
+ |_____| |_| \_| U  \_/-(_/
+ <<   >> ||   \\,-.//
+(__) (__)(_")  (_/(__)
+*/
+
+const E = dotenv();
+
+/*
+  __  __    U  ___ u  _   _     ____    U  ___ u  ____    ____
+U|' \/ '|u   \/"_ \/ | \ |"| U /"___|u   \/"_ \/ |  _"\U | __")u
+\| |\/| |/   | | | |<|  \| |>\| |  _ /   | | | |/| | | |\|  _ \/
+ | |  | |.-,_| |_| |U| |\  |u | |_| |.-,_| |_| |U| |_| |\| |_) |
+ |_|  |_| \_)-\___/  |_| \_|   \____| \_)-\___/  |____/ u|____/
+<<,-,,-.       \\    ||   \\,-._)(|_       \\     |||_  _|| \\_
+ (./  \.)     (__)   (_")  (_/(__)__)     (__)   (__)_)(__) (__)
+*/
+
+const db = new MongoDb(E.SERVER, E.UN, E.PW, E.DB);
+
+//db.print();
+db.init();
+
 export default {
   /**
    * @description Get all dinosaurs
    * @route GET /dinosaurs
    */
 
-  getDinosaurs: ({ response }: { response: Response }) => {
-    response.body = {
-      success: true,
-      data: dinosaurs,
-    };
-  },
-
-  getDinosaur: async (c: Context, id: string) => {
-    const selected: Dinosaur | undefined = dinosaurs.find((dino) =>
-      dino.id === id
-    );
-    const { response } = await c;
-    if (selected) {
-      response.status = 200;
+  getDinosaurs: async ({ response }: { response: Response }) => {
+    if (db.connected === true) {
+      console.log(log.blue("🥅 /dinosaurs have an request!"));
+      const dinosaurs = await db.list();
       response.body = {
         success: true,
-        data: selected,
+        data: dinosaurs,
       };
     } else {
-      response.status = 404;
+      console.log(
+        log.red("❌ /dinosaurs *No database connection!*"),
+      );
       response.body = {
         success: false,
-        data: "🐉 Dinosaur not found",
+        data: "❌ Router: No database connection!",
       };
-      console.log(log.red(
-        "🐉 Requested Dinosaur not found with id:" + id,
-      ));
     }
   },
 
-  addDinosaur: async (c: Context) => {
-    const { request, response } = await c;
-    if (!request.hasBody) {
-      c.throw(400, "🧨 Empty data JSON");
-    } else {
-      const result = await request.body();
-      if (result.type === "json") {
-        const value = await result.value;
-        console.log(value);
+  /**
+   * @description Get dinosaur with a slug
+   * @route GET /dinosaur/slug
+   * @param {Context} c
+   * @param {string} slug
+   */
+
+  getDinosaur: async (c: Context, slug: string) => {
+    const { response } = await c;
+    if (db.connected === true) {
+      const dinosaur = await db.listone(slug);
+      console.log(log.blue(`🥅 /dinosaur/${slug} has a request!`));
+      if (dinosaur) {
+        response.status = 200;
         response.body = {
           success: true,
-          data: value,
+          data: dinosaur,
         };
       } else {
-        c.throw(400, "🧨 That's not JSON!");
+        console.log(
+          log.red(`🐉 Requested Dinosaur not found /dinosaur/${slug}`),
+        );
+        c.throw(404, "🐉 Dinosaur not found");
       }
+    } else {
+      console.log(
+        log.red(`❌ /dinosaur/${slug} *No database connection!*`),
+      );
+      c.response.body = {
+        success: false,
+        data: "❌ Router: No database connection!",
+      };
     }
   },
-  /*
-    { request, response }: { request: Request; response: Response },
-  ) => {
-    if (!request.hasBody) {
-      response.status = 400;
-      response.body = {
-        success: false,
-        msg: "No data",
-      };
+
+  /**
+   * @description Post dinosaur
+   * @route POST /dinosaur
+   * @param {Context} c
+   */
+
+  addDinosaur: async (c: Context) => {
+    if (db.connected === true) {
+      const { request, response } = await c;
+      if (!request.hasBody) {
+        console.log(log.red("❌ POST /dinosaur Empty JSON"));
+        c.throw(400, "🧨 Empty JSON");
+      } else {
+        const result = await request.body();
+        if (result.type === "json") {
+          try {
+            const dinosaur = await result.value;
+            const { name, slug, description, image } = dinosaur;
+            const schema = new DinosaurSchema(name, slug, description, image);
+            if (await schema.validate() === true) {
+              if (await db.checkSlug(dinosaur.slug) === true) {
+                if (await db.add(dinosaur) === true) {
+                  response.body = {
+                    success: true,
+                    data: "🦕 Dinosaur added to database!",
+                  };
+                }
+              } else {
+                console.log("❌ Slug in use!");
+                response.status = 406;
+                response.body = {
+                  success: false,
+                  data: "❌ Slug is in use!",
+                };
+              }
+            } else {
+              console.log("❌ Validation failed!");
+              response.status = 406;
+              response.body = {
+                success: false,
+                data:
+                  "❌ Data is invalid! Need name, slug, description (and image).",
+              };
+            }
+          } catch (err) {
+            console.log(log.red("❌ POST /dinosaur Not JSON"));
+            response.status = 405;
+            response.body = {
+              success: false,
+              data: "🧨 Not a proper JSON!",
+            };
+            //c.throw(500, "🧨 Not JSON!");
+          }
+        } else {
+          console.log(log.red("❌ POST /dinosaur Not JSON"));
+          response.status = 405;
+          response.body = {
+            success: false,
+            data: "🧨 Not a JSON!",
+          };
+        }
+      }
     } else {
-      const result = await request.body();
-      if (result.type === "json") {
-        const value = await result.value;
-        console.log(value);
-      } else c.throw(404, "🧨 That's not JSON!");
-      /*
-      const Dinosaur: Dinosaur = dinosaurBody;
-      Dinosaur.id = v4.generate();
-      dinosaurs.push(Dinosaur);
-      */
-  /*
-      response.status = 201;
-      response.body = {
-        success: true,
-        //data: dinosaurBody,
-        //data: Dinosaur,
+      console.log(
+        log.red(`❌ POST /dinosaur *No database connection!*`),
+      );
+      c.response.body = {
+        success: false,
+        data: "❌ Router: No database connection!",
       };
     }
-    */
+  },
 
   deleteDinosaur: async (c: Context, id: string) => {
     const { request, response } = c;
-    const filteredDinosaurs: Array<Dinosaur> = dinosaurs.filter(
+    const filteredDinosaurs: Array<Dinosaur> = stubDinosaurs.filter(
       (dinosaur: Dinosaur) => (dinosaur.id !== id),
     );
-    if (filteredDinosaurs.length === dinosaurs.length) {
+    if (filteredDinosaurs.length === stubDinosaurs.length) {
       response.status = 404;
       response.body = {
         success: false,
         msg: "Not found",
       };
     } else {
-      dinosaurs.splice(0, dinosaurs.length);
-      dinosaurs.push(...filteredDinosaurs);
+      stubDinosaurs.splice(0, stubDinosaurs.length);
+      stubDinosaurs.push(...filteredDinosaurs);
       response.status = 200;
       response.body = {
         success: true,
@@ -131,12 +219,12 @@ export default {
 
   updateDinosaur: async (c: Context, id: string) => {
     const { request, response } = c;
-    const requestedDinosaur: Dinosaur | undefined = dinosaurs.find(
+    const requestedDinosaur: Dinosaur | undefined = stubDinosaurs.find(
       (dinosaur: Dinosaur) => dinosaur.id === id,
     );
     if (requestedDinosaur) {
       const { value: updatedDinosaurBody } = await request.body();
-      const updatedDinosaurs: Array<Dinosaur> = dinosaurs.map(
+      const updatedDinosaurs: Array<Dinosaur> = stubDinosaurs.map(
         (dinosaur: Dinosaur) => {
           if (dinosaur.id === id) {
             return {
@@ -149,8 +237,8 @@ export default {
         },
       );
 
-      dinosaurs.splice(0, dinosaurs.length);
-      dinosaurs.push(...updatedDinosaurs);
+      stubDinosaurs.splice(0, stubDinosaurs.length);
+      stubDinosaurs.push(...updatedDinosaurs);
       response.status = 200;
       response.body = {
         success: true,

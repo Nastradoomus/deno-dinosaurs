@@ -8,8 +8,9 @@
  \_)-' '-(_/ (_")  (_/(__) (__)(__) (__) (__)  (__)(__)(_/ (__)  (__)(__)(__)(__) (__)(__)
 */
 
-export default interface Dinosaur {
+export interface Dinosaur {
   name: string;
+  slug: string;
   description: string;
   image?: string;
   id?: string;
