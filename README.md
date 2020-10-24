@@ -8,7 +8,7 @@
 
 1. VSCode
 2. [Laragon](https://laragon.org). Easy WAMP (Windows Apache, MySQL and PHP) with super easy version control for NodeJS, PHP + more. Put your MongoDB package under \laragon\bin\Mongodb start up Laragon and you're good to go.
-3. Watch is broken with command prompt. I'm now using Alpine on WSL2 but watch does not recognize file changes on it. Just have to live it for a while. Useless to repair something that is eventually going to work. Done it with Deno so many times already.
+3. Watch is broken with command prompt. I'm now using Alpine on WSL2 but watch does not recognize file changes on it. Just have to live with it for a while. Useless to repair something that is eventually going to work. Done it with Deno so many times already.
 
 ### Side notes
 
