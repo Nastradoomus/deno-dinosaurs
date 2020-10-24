@@ -13,5 +13,5 @@ export interface Dinosaur {
   slug: string;
   description: string;
   image?: string;
-  id?: string;
+  id?: string | number[];
 }

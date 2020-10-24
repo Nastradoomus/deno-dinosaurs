@@ -10,9 +10,9 @@ U /"___|   \/"_ \/ | \ |"|   |_ " _|U |  _"\ u  \/"_ \/  |"|     |"|    \| ___"|
 
 // REQUEST & RESPONSE
 import type {
-  Response,
   Context,
-} from "https://deno.land/x/oak/mod.ts";
+  Response,
+} from "https://raw.githubusercontent.com/oakserver/oak/main/mod.ts";
 
 //ENV
 import dotenv from "https://raw.githubusercontent.com/AM-77/deno-dotenv/master/mod.ts";
@@ -23,17 +23,11 @@ import MongoDb from "../db/db.ts";
 // INTERFACE
 import type { Dinosaur } from "../interfaces/dinosaur.ts";
 
-// STUBS
-import stubDinosaurs from "../stubs/dinosaurs.ts";
-
 //SCHEMA
 import DinosaurSchema from "../schema/dinosaur.ts";
 
 //CONSOLE
-import * as Colors from "https://deno.land/std/fmt/colors.ts";
-
-//Shorts
-const log = Colors;
+import * as log from "https://raw.githubusercontent.com/denoland/deno/master/std/fmt/colors.ts";
 
 /*
 U _____ u _   _  __     __
@@ -59,7 +53,6 @@ U|' \/ '|u   \/"_ \/ | \ |"| U /"___|u   \/"_ \/ |  _"\U | __")u
 
 const db = new MongoDb(E.SERVER, E.UN, E.PW, E.DB);
 
-//db.print();
 db.init();
 
 export default {
@@ -173,7 +166,6 @@ export default {
               success: false,
               data: "🧨 Not a proper JSON!",
             };
-            //c.throw(500, "🧨 Not JSON!");
           }
         } else {
           console.log(log.red("❌ POST /dinosaur Not JSON"));
@@ -197,6 +189,7 @@ export default {
 
   deleteDinosaur: async (c: Context, id: string) => {
     const { request, response } = c;
+    /*
     const filteredDinosaurs: Array<Dinosaur> = stubDinosaurs.filter(
       (dinosaur: Dinosaur) => (dinosaur.id !== id),
     );
@@ -215,10 +208,12 @@ export default {
         msg: `Dinosaur with id ${id} has been deleted`,
       };
     }
+    */
   },
 
   updateDinosaur: async (c: Context, id: string) => {
     const { request, response } = c;
+    /*
     const requestedDinosaur: Dinosaur | undefined = stubDinosaurs.find(
       (dinosaur: Dinosaur) => dinosaur.id === id,
     );
@@ -251,5 +246,6 @@ export default {
         msg: `Not Found`,
       };
     }
+    */
   },
 };

@@ -1,7 +1,8 @@
-import * as yup from "https://cdn.skypack.dev/pin/yup@v0.29.3-ZzqjmuxJFzKiUPDYHsl3/min/yup.js";
-import * as Colors from "https://deno.land/std/fmt/colors.ts";
+//import * as yup from "https://cdn.skypack.dev/pin/yup@v0.29.3-n1VXpnva4am9lQXZlFf7/yup.js";
+import * as log from "https://raw.githubusercontent.com/denoland/deno/master/std/fmt/colors.ts";
 import { slugify } from "../helpers/slugify.ts";
 
+const yup = await import("https://cdn.skypack.dev/yup?dts");
 /*
   ____      ____   _   _  U _____ u  __  __      _
  / __"| uU /"___| |'| |'| \| ___"|/U|' \/ '|uU  /"\  u
@@ -12,9 +13,6 @@ import { slugify } from "../helpers/slugify.ts";
  (__)    (__)(__)(_") ("_)(__) (__) (./  \.) (__)  (__)
 
 */
-
-//Shorts
-const log = Colors;
 
 export default class Schema {
   name: string;

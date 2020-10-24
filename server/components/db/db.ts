@@ -9,14 +9,13 @@ U|' \/ '|u   \/"_ \/ | \ |"| U /"___|u   \/"_ \/ |  _"\U | __")u
 */
 
 import {
-  MongoClient,
   Database,
+  MongoClient,
 } from "https://raw.githubusercontent.com/manyuanrong/deno_mongo/master/mod.ts";
-import * as Colors from "https://deno.land/std/fmt/colors.ts";
+import * as log from "https://raw.githubusercontent.com/denoland/deno/master/std/fmt/colors.ts";
 import type { Dinosaur } from "../interfaces/dinosaur.ts";
 
 const mongo = new MongoClient();
-const log = Colors;
 let database: Database;
 interface Schema {
   _id: { $oid: string };
@@ -48,20 +47,25 @@ export default class MongoDb {
       log.yellow("Your Mongo data is:" + JSON.stringify(this, null, 2)),
     );
   };
+
   init = async () => {
+    mongo.connectWithUri(this.host);
     try {
-      mongo.connectWithUri(this.host);
+      setTimeout(() => {
+        console.log(log.green("🥕 Checking Mongo connection..."));
+      }, 1);
+      const list = await mongo.listDatabases();
+    } catch (e) {
+      this.#connected = false;
+      console.log(`❌ ${e}`);
+    } finally {
       database = mongo.database(this.db);
-      if (database) {
-        this.#connected = true;
-        setTimeout(() => {
-          console.log(
-            log.brightMagenta("⚓ Mongo online & database: " + this.db),
-          );
-        }, 1);
-      }
-    } catch (err) {
-      console.log(`❌ ${err}`);
+      this.#connected = true;
+      setTimeout(() => {
+        console.log(
+          log.brightMagenta("⚓ Mongo online & database: " + this.db),
+        );
+      }, 1);
     }
   };
   listone = async (slug: string) => {
@@ -71,16 +75,20 @@ export default class MongoDb {
         const one = await dinosaurs.findOne({ slug: slug });
         if (one) return one;
         else console.log(log.red(`❌ MongoDB Not found with slug: ${slug}`));
-      } catch (err) {
-        console.log(`❌ ${err}`);
+      } catch (e) {
+        console.log(`❌ ${e}`);
       }
     }
   };
   list = async () => {
     if (this.#connected) {
-      const dinosaurs = database.collection<Schema>("dinosaurs");
-      const all = await dinosaurs.find({ name: { $ne: null } });
-      return all;
+      try {
+        const dinosaurs = database.collection<Schema>("dinosaurs");
+        const all = await dinosaurs.find({ name: { $ne: null } });
+        return all;
+      } catch (e) {
+        console.log(`❌ ${e}`);
+      }
     }
   };
   checkSlug = async (s: string) => {
@@ -110,9 +118,19 @@ export default class MongoDb {
     }
   };
 
-  remove = async () => {
+  remove = async (d: Dinosaur) => {
     if (this.#connected) {
-      console.log("remove");
+      const dinosaurs = database.collection<Schema>("dinosaurs");
+      try {
+        dinosaurs.deleteOne({
+          slug: d.slug,
+        });
+        console.log(log.blue("💔 Removed dinosaur from database!"));
+        return true;
+      } catch (e) {
+        console.log(log.red("❌ Could not remove a dinosaur fromdatabase!"));
+        return false;
+      }
     }
   };
 }

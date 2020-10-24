@@ -9,7 +9,7 @@ U |  _"\ u  \/"_ \/U |"|u| ||_ " _| \| ___"|/U |  _"\ u
  */
 
 // ROUTER
-import { Router } from "https://deno.land/x/oak/mod.ts";
+import { Router } from "https://raw.githubusercontent.com/oakserver/oak/main/mod.ts";
 
 // CONTROLLERS
 import Controller from "../controllers/controller.ts";

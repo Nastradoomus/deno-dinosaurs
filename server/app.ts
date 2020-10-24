@@ -16,26 +16,13 @@
 */
 
 //CONSOLE
-import * as Colors from "https://deno.land/std/fmt/colors.ts";
-
-//INTERFACE
-import type { Dinosaur } from "./components/interfaces/dinosaur.ts";
-
-//SCHEMA
-import DinosaurSchema from "./components/schema/dinosaur.ts";
+import * as log from "https://raw.githubusercontent.com/denoland/deno/master/std/fmt/colors.ts";
 
 //ROUTES
 import Router from "./components/routes/dinosaurs.ts";
 
 //OAK
-import {
-  Application,
-} from "https://deno.land/x/oak/mod.ts";
-
-//Shorts
-const log = Colors;
-
-console.log(log.cyan("🦕 Welcome to Deno"));
+import { Application } from "https://raw.githubusercontent.com/oakserver/oak/main/mod.ts";
 
 /*
   ____   U _____ u   ____   __     __ U _____ u
@@ -46,6 +33,8 @@ console.log(log.cyan("🦕 Welcome to Deno"));
   )(  (__)<<   >>   //   \\_  //       <<   >>
  (__)    (__) (__) (__)  (__)(__)     (__) (__)
  */
+
+console.log(log.cyan("🦕 Welcome to Deno"));
 
 const app = new Application();
 
