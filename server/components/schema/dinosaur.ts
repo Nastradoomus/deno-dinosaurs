@@ -1,8 +1,18 @@
-//import * as yup from "https://cdn.skypack.dev/pin/yup@v0.29.3-n1VXpnva4am9lQXZlFf7/yup.js";
+//INTERFACE
+import type { Dinosaur } from "../interfaces/dinosaur.ts";
+
+//LOG
 import * as log from "https://raw.githubusercontent.com/denoland/deno/master/std/fmt/colors.ts";
+
+//SLUGIFY
 import { slugify } from "../helpers/slugify.ts";
 
-const yup = await import("https://cdn.skypack.dev/yup?dts");
+//YUP
+import * as yup from "https://cdn.skypack.dev/yup?dts";
+
+//SANITIZE
+import { XmlEntities as Sanitize } from "https://deno.land/x/html_entities@v1.0/mod.js";
+
 /*
   ____      ____   _   _  U _____ u  __  __      _
  / __"| uU /"___| |'| |'| \| ___"|/U|' \/ '|uU  /"\  u
@@ -15,21 +25,11 @@ const yup = await import("https://cdn.skypack.dev/yup?dts");
 */
 
 export default class Schema {
-  name: string;
-  slug: string;
-  description: string;
-  image?: string;
+  dinosaur: Dinosaur;
   constructor(
-    name: string,
-    slug: string,
-    description: string,
-    image?: string,
+    dinosaur: Dinosaur,
   ) {
-    this.name = name;
-    this.slug = slugify(slug);
-    this.description = description;
-    this.image = image;
-    if (typeof this.image === "string") this.image = image;
+    this.dinosaur = dinosaur;
   }
 
   async validate() {
@@ -39,18 +39,25 @@ export default class Schema {
       description: yup.string().trim().min(5).required(),
       image: yup.string().trim().url(),
     });
-
+    const { name, slug, description, image } = this.dinosaur;
     const o = {
-      "name": this.name,
-      "slug": this.slug,
-      "description": this.description,
-      "image": this.image,
+      "name": name,
+      "slug": slug,
+      "description": description,
+      "image": image,
     };
     const isvalid = schema.isValid(o);
     if (await isvalid === true) {
       console.log(
-        log.green(log.bold("🐉 New Dinosaur is valid")),
+        log.green(
+          log.bold(
+            "🐉 New Dinosaur is valid. Sanitizing data and creating slug...",
+          ),
+        ),
       );
+      this.dinosaur.slug = slugify(slug);
+      this.dinosaur.name = Sanitize.encode(name);
+      this.dinosaur.description = Sanitize.encode(description);
     } else {
       schema.validate(o).catch(function (err: Record<string, unknown>) {
         console.log(log.red(log.bold("❌ Not valid: " + JSON.stringify(o))));

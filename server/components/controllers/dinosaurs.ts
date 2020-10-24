@@ -20,7 +20,7 @@ import dotenv from "https://raw.githubusercontent.com/AM-77/deno-dotenv/master/m
 //MONGODB
 import MongoDb from "../db/db.ts";
 
-// INTERFACE
+//INTERFACE
 import type { Dinosaur } from "../interfaces/dinosaur.ts";
 
 //SCHEMA
@@ -56,11 +56,6 @@ const db = new MongoDb(E.SERVER, E.UN, E.PW, E.DB);
 db.init();
 
 export default {
-  /**
-   * @description Get all dinosaurs
-   * @route GET /dinosaurs
-   */
-
   getDinosaurs: async ({ response }: { response: Response }) => {
     if (db.connected === true) {
       console.log(log.blue("🥅 /dinosaurs have an request!"));
@@ -80,16 +75,9 @@ export default {
     }
   },
 
-  /**
-   * @description Get dinosaur with a slug
-   * @route GET /dinosaur/slug
-   * @param {Context} c
-   * @param {string} slug
-   */
-
   getDinosaur: async (c: Context, slug: string) => {
-    const { response } = await c;
     if (db.connected === true) {
+      const { response } = await c;
       const dinosaur = await db.listone(slug);
       console.log(log.blue(`🥅 /dinosaur/${slug} has a request!`));
       if (dinosaur) {
@@ -115,12 +103,6 @@ export default {
     }
   },
 
-  /**
-   * @description Post dinosaur
-   * @route POST /dinosaur
-   * @param {Context} c
-   */
-
   addDinosaur: async (c: Context) => {
     if (db.connected === true) {
       const { request, response } = await c;
@@ -131,15 +113,17 @@ export default {
         const result = await request.body();
         if (result.type === "json") {
           try {
-            const dinosaur = await result.value;
-            const { name, slug, description, image } = dinosaur;
-            const schema = new DinosaurSchema(name, slug, description, image);
+            const data: Dinosaur = await result.value;
+            const schema = new DinosaurSchema(data);
             if (await schema.validate() === true) {
-              if (await db.checkSlug(dinosaur.slug) === true) {
+              const { dinosaur } = schema;
+              const { slug } = dinosaur;
+              if (await db.slugExists(slug) === false) {
                 if (await db.add(dinosaur) === true) {
                   response.body = {
                     success: true,
-                    data: "🦕 Dinosaur added to database!",
+                    data: "🦕 Dinosaur added to database with a slug: " + slug +
+                      "!",
                   };
                 }
               } else {
@@ -156,7 +140,7 @@ export default {
               response.body = {
                 success: false,
                 data:
-                  "❌ Data is invalid! Need name, slug, description (and image).",
+                  "❌ Data is invalid! Need a name, slug, description (and image).",
               };
             }
           } catch (err) {
@@ -187,8 +171,37 @@ export default {
     }
   },
 
-  deleteDinosaur: async (c: Context, id: string) => {
-    const { request, response } = c;
+  deleteDinosaur: async (c: Context, slug: string) => {
+    if (db.connected === true) {
+      const { response } = await c;
+      if (await db.slugExists(slug) === true) {
+        console.log("true");
+        const dinosaur = await db.remove(slug);
+        console.log(log.red(`🪂 /dinosaur/${slug} has been removed!`));
+        if (dinosaur) {
+          response.status = 200;
+          response.body = {
+            success: true,
+            data: dinosaur,
+          };
+        }
+      } else {
+        console.log(
+          log.red(
+            `🐉 Requested Dinosaur for deletion not found /dinosaur/${slug}`,
+          ),
+        );
+        c.throw(404, "🐉 Dinosaur not found");
+      }
+    } else {
+      console.log(
+        log.red(`❌ /dinosaur/${slug} *No database connection!*`),
+      );
+      c.response.body = {
+        success: false,
+        data: "❌ Router: No database connection!",
+      };
+    }
     /*
     const filteredDinosaurs: Array<Dinosaur> = stubDinosaurs.filter(
       (dinosaur: Dinosaur) => (dinosaur.id !== id),

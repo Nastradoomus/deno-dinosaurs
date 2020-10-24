@@ -1,7 +1,7 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
-/.deno-plugins*
+.deno-plugins/*
 
 # testing
 
@@ -10,3 +10,4 @@
 
 # misc
 .env
+.deno_plugins/deno_mongo_ce02adbd9ca9967016cbf45958ee753b.dll

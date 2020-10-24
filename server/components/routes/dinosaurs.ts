@@ -34,13 +34,12 @@ router
     await dinosaursController.getDinosaur(c, id);
   })
   .post("/dinosaur", async (c) => dinosaursController.addDinosaur(c))
-  .put("/dinosaur/:id", async (c) => {
-    if (c.params.id) id = c.params.id;
-    await dinosaursController.updateDinosaur(c, id);
-  })
   .delete("/dinosaur/:id", async (c) => {
     if (c.params.id) id = c.params.id;
     await dinosaursController.deleteDinosaur(c, id);
+  })
+  .put("/dinosaur/:id", async (c) => {
+    if (c.params.id) id = c.params.id;
+    await dinosaursController.updateDinosaur(c, id);
   });
-
 export default router;

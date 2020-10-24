@@ -13,17 +13,13 @@ import {
   MongoClient,
 } from "https://raw.githubusercontent.com/manyuanrong/deno_mongo/master/mod.ts";
 import * as log from "https://raw.githubusercontent.com/denoland/deno/master/std/fmt/colors.ts";
-import type { Dinosaur } from "../interfaces/dinosaur.ts";
+import type { DbSchema, Dinosaur } from "../interfaces/dinosaur.ts";
+
+//SCHEMA
+import DinosaurSchema from "../schema/dinosaur.ts";
 
 const mongo = new MongoClient();
 let database: Database;
-interface Schema {
-  _id: { $oid: string };
-  slug: string;
-  name: string;
-  description: string;
-  image?: string;
-}
 
 export default class MongoDb {
   host: string;
@@ -70,7 +66,7 @@ export default class MongoDb {
   };
   listone = async (slug: string) => {
     if (this.#connected) {
-      const dinosaurs = database.collection<Schema>("dinosaurs");
+      const dinosaurs = database.collection<DbSchema>("dinosaurs");
       try {
         const one = await dinosaurs.findOne({ slug: slug });
         if (one) return one;
@@ -83,7 +79,7 @@ export default class MongoDb {
   list = async () => {
     if (this.#connected) {
       try {
-        const dinosaurs = database.collection<Schema>("dinosaurs");
+        const dinosaurs = database.collection<DbSchema>("dinosaurs");
         const all = await dinosaurs.find({ name: { $ne: null } });
         return all;
       } catch (e) {
@@ -91,25 +87,30 @@ export default class MongoDb {
       }
     }
   };
-  checkSlug = async (s: string) => {
-    const dinosaurs = database.collection<Schema>("dinosaurs");
+  slugExists = async (s: string) => {
+    const dinosaurs = database.collection<DbSchema>("dinosaurs");
     const slugExists = await dinosaurs.findOne({ slug: s });
     if (slugExists === null) {
-      return true;
-    } else return false;
+      return false;
+    } else return true;
   };
 
   add = async (d: Dinosaur) => {
     if (this.#connected) {
-      const dinosaurs = database.collection<Schema>("dinosaurs");
+      const { name, slug, description, image } = d;
+      const dinosaurs = database.collection<DbSchema>("dinosaurs");
       try {
         dinosaurs.insertOne({
-          name: d.name,
-          slug: d.slug,
-          description: d.description,
-          image: d.image,
+          name: name,
+          slug: slug,
+          description: description,
+          image: image,
         });
-        console.log(log.blue("⛳ Added a new dinosaur to database!"));
+        console.log(
+          log.blue(
+            "⛳ Added a new dinosaur to database with a slug: " + slug + ".",
+          ),
+        );
         return true;
       } catch (e) {
         console.log(log.red("❌ Could not add a dinosaur to database!"));
@@ -118,14 +119,16 @@ export default class MongoDb {
     }
   };
 
-  remove = async (d: Dinosaur) => {
+  remove = async (s: string) => {
     if (this.#connected) {
-      const dinosaurs = database.collection<Schema>("dinosaurs");
+      const dinosaurs = database.collection<DbSchema>("dinosaurs");
       try {
         dinosaurs.deleteOne({
-          slug: d.slug,
+          slug: s,
         });
-        console.log(log.blue("💔 Removed dinosaur from database!"));
+        console.log(
+          log.red("💔 Removed dinosaur with a slug " + s + " from database!"),
+        );
         return true;
       } catch (e) {
         console.log(log.red("❌ Could not remove a dinosaur fromdatabase!"));

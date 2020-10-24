@@ -15,3 +15,7 @@ export interface Dinosaur {
   image?: string;
   id?: string | number[];
 }
+
+export interface DbSchema extends Dinosaur {
+  _id: { $oid: string };
+}
