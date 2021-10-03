@@ -36,7 +36,15 @@ U _____ u _   _  __     __
 (__) (__)(_")  (_/(__)
 */
 
-const env = config({ safe: true });
+let env: Record<string, string> = {};
+if (Object.prototype.hasOwnProperty.call(Deno.env.toObject(), "SERVER")) {
+  env = {
+    SERVER: Deno.env.toObject().SERVER,
+    UN: Deno.env.toObject().UN,
+    PW: Deno.env.toObject().PW,
+    DB: Deno.env.toObject().DB,
+  };
+} else env = config({ safe: true });
 
 /*
   __  __    U  ___ u  _   _     ____    U  ___ u  ____    ____
