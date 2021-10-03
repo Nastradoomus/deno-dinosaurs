@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 🦕 Simple Deno, Oak, MongoDB CRUD wip
 
 ## 1. Get deno [Deno](https://deno.land/#installation)
