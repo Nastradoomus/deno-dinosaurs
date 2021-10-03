@@ -36,7 +36,7 @@ U _____ u _   _  __     __
 (__) (__)(_")  (_/(__)
 */
 
-const env = config();
+const env = config({ safe: true });
 
 /*
   __  __    U  ___ u  _   _     ____    U  ___ u  ____    ____
