@@ -2,7 +2,7 @@
 import type { Dinosaur } from "../interfaces/dinosaur.ts";
 
 //LOG
-import * as log from "https://raw.githubusercontent.com/denoland/deno/master/std/fmt/colors.ts";
+import * as log from "https://deno.land/std/fmt/colors.ts";
 
 //SLUGIFY
 import { slugify } from "../helpers/slugify.ts";

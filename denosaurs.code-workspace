@@ -1,0 +1,17 @@
+{
+  "folders": [
+    {
+      "path": "."
+    }
+  ],
+  "settings": {
+    "deno.enable": true,
+    "deno.suggest.imports.hosts": {
+      "https://raw.githubusercontent.com": false,
+      "https://deno.raw.githubusercontent.com": false,
+      "https://deno.land.raw.githubusercontent.com": false,
+      "https://deno.landraw.githubusercontent.com": false,
+      "https://deno.land": false
+    }
+  }
+}

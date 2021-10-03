@@ -9,14 +9,9 @@ U /"___|   \/"_ \/ | \ |"|   |_ " _|U |  _"\ u  \/"_ \/  |"|     |"|    \| ___"|
 */
 
 // REQUEST & RESPONSE
-import type { Response } from "https://raw.githubusercontent.com/oakserver/oak/main/mod.ts";
+import { Response } from "https://deno.land/x/oak/mod.ts";
 
 export default {
-  /**
-   * @description Get root
-   * @route GET /
-   */
-
   default: ({ response }: { response: Response }) => {
     response.body = {
       success: true,

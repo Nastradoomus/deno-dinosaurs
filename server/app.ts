@@ -16,13 +16,13 @@
 */
 
 //CONSOLE
-import * as log from "https://raw.githubusercontent.com/denoland/deno/master/std/fmt/colors.ts";
+import * as log from "https://deno.land/std/fmt/colors.ts";
 
 //ROUTES
-import Router from "./components/routes/dinosaurs.ts";
+import router from "./components/routes/index.ts";
 
 //OAK
-import { Application } from "https://raw.githubusercontent.com/oakserver/oak/main/mod.ts";
+import { Application } from "https://deno.land/x/oak/mod.ts";
 
 /*
   ____   U _____ u   ____   __     __ U _____ u
@@ -41,14 +41,14 @@ const app = new Application();
 const controller = new AbortController();
 const { signal } = controller;
 
-app.use(Router.routes());
-app.use(Router.allowedMethods());
+app.use(router.routes());
+app.use(router.allowedMethods());
 
 app.addEventListener("listen", ({ hostname, port, secure }) => {
   console.log(log.blue(
-    `👂 ${secure ? "https://" : "http://"}${hostname ??
-      "localhost"}:${port}`,
+    `👂 ${secure ? "https://" : "http://"}${hostname}:${port}`,
   ));
+  console.log(log.green("🥕 Wait for Mongo connection..."));
 });
 
 const listenPromise = app.listen({ port: 1337, signal });
