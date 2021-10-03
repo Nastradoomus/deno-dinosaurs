@@ -12,6 +12,12 @@
       "https://deno.land.raw.githubusercontent.com": false,
       "https://deno.landraw.githubusercontent.com": false,
       "https://deno.land": false
-    }
+    },
+		"[typescript]": {
+			"editor.defaultFormatter": "denoland.vscode-deno"
+		},
+		"[typescriptreact]": {
+			"editor.defaultFormatter": "denoland.vscode-deno"
+		}
   }
 }

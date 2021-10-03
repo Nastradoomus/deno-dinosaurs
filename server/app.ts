@@ -24,6 +24,9 @@ import router from "./components/routes/index.ts";
 //OAK
 import { Application } from "https://deno.land/x/oak/mod.ts";
 
+//ARGS
+import { parse } from "https://deno.land/std/flags/mod.ts";
+
 /*
   ____   U _____ u   ____   __     __ U _____ u
  / __"| u\| ___"|/U |  _"\ u\ \   /"/u\| ___"|/
@@ -41,12 +44,9 @@ const app = new Application();
 app.use(router.routes());
 app.use(router.allowedMethods());
 
-// Logger
-app.use(async (ctx, next) => {
-  await next();
-  const rt = ctx.response.headers.get("X-Response-Time");
-  console.log(`${ctx.request.method} ${ctx.request.url} - ${rt}`);
-});
+const defaultPort = 1337;
+const { args } = Deno;
+const argPort = parse(args).port;
 
 app.addEventListener("listen", ({ hostname, port, secure }) => {
   console.log(log.blue(
@@ -55,4 +55,4 @@ app.addEventListener("listen", ({ hostname, port, secure }) => {
   console.log(log.green("🥕 Wait for Mongo connection..."));
 });
 
-await app.listen({ port: 1337 });
+await app.listen({ port: argPort ? Number(argPort) : defaultPort });
