@@ -23,7 +23,11 @@ export default class MongoDb {
     private password: string,
     private database: string,
   ) {
-    this.#mongo.connect(this.host).then(() => {
+    this.#mongo.connect(
+      "mongodb+srv://" + this.username + ":" + this.password + "@" +
+        this.host + "/" + this.database +
+        "?retryWrites=true&w=majority&authMechanism=SCRAM-SHA-1",
+    ).then(() => {
       this.#db = this.#mongo.database(this.database);
     }).catch((e) => {
       console.log(`❌ ${e}`);

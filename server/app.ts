@@ -38,11 +38,15 @@ console.log(log.cyan("🦕 Welcome to Deno"));
 
 const app = new Application();
 
-const controller = new AbortController();
-const { signal } = controller;
-
 app.use(router.routes());
 app.use(router.allowedMethods());
+
+// Logger
+app.use(async (ctx, next) => {
+  await next();
+  const rt = ctx.response.headers.get("X-Response-Time");
+  console.log(`${ctx.request.method} ${ctx.request.url} - ${rt}`);
+});
 
 app.addEventListener("listen", ({ hostname, port, secure }) => {
   console.log(log.blue(
@@ -51,9 +55,4 @@ app.addEventListener("listen", ({ hostname, port, secure }) => {
   console.log(log.green("🥕 Wait for Mongo connection..."));
 });
 
-const listenPromise = app.listen({ port: 1337, signal });
-
-await listenPromise;
-
-//For aborting...
-//controller.abort();
+await app.listen({ port: 1337 });
