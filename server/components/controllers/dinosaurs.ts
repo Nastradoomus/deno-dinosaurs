@@ -36,7 +36,7 @@ U _____ u _   _  __     __
 (__) (__)(_")  (_/(__)
 */
 
-const E = config();
+const env = config();
 
 /*
   __  __    U  ___ u  _   _     ____    U  ___ u  ____    ____
@@ -48,7 +48,8 @@ U|' \/ '|u   \/"_ \/ | \ |"| U /"___|u   \/"_ \/ |  _"\U | __")u
  (./  \.)     (__)   (_")  (_/(__)__)     (__)   (__)_)(__) (__)
 */
 
-const db = new MongoDb(E.SERVER, E.UN, E.PW, E.DB);
+console.log(env);
+const db = new MongoDb(env.SERVER, env.UN, env.PW, env.DB);
 
 //EXPORT CONTROLLER FUNCTIONS
 export default {
