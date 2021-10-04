@@ -11,11 +11,11 @@ U| |_| |\  | |    U| |\  |u.-,_| |_| | u___) |  / ___ \   | |_| |  |  _ <       
 // REQUEST & RESPONSE
 import type { Context, Response } from "https://deno.land/x/oak/mod.ts";
 
-//ENV
-import { config } from "https://deno.land/x/dotenv/mod.ts";
-
 //MONGODB
 import MongoDb from "../db/db.ts";
+
+//ENV
+import { parseDBEnv } from "../../../common/env.ts";
 
 //INTERFACE
 import type { Dinosaur } from "../interfaces/dinosaur.ts";
@@ -27,26 +27,6 @@ import DinosaurSchema from "../schema/dinosaur.ts";
 import * as log from "https://deno.land/std/fmt/colors.ts";
 
 /*
-U _____ u _   _  __     __
-\| ___"|/| \ |"| \ \   /"/u
- |  _|" <|  \| |> \ \ / //
- | |___ U| |\  |u /\ V /_,-.
- |_____| |_| \_| U  \_/-(_/
- <<   >> ||   \\,-.//
-(__) (__)(_")  (_/(__)
-*/
-
-let env: Record<string, string> = {};
-if (Object.prototype.hasOwnProperty.call(Deno.env.toObject(), "SERVER")) {
-  env = {
-    SERVER: Deno.env.toObject().SERVER,
-    UN: Deno.env.toObject().UN,
-    PW: Deno.env.toObject().PW,
-    DB: Deno.env.toObject().DB,
-  };
-} else env = config({ safe: true });
-
-/*
   __  __    U  ___ u  _   _     ____    U  ___ u  ____    ____
 U|' \/ '|u   \/"_ \/ | \ |"| U /"___|u   \/"_ \/ |  _"\U | __")u
 \| |\/| |/   | | | |<|  \| |>\| |  _ /   | | | |/| | | |\|  _ \/
@@ -55,8 +35,7 @@ U|' \/ '|u   \/"_ \/ | \ |"| U /"___|u   \/"_ \/ |  _"\U | __")u
 <<,-,,-.       \\    ||   \\,-._)(|_       \\     |||_  _|| \\_
  (./  \.)     (__)   (_")  (_/(__)__)     (__)   (__)_)(__) (__)
 */
-
-console.log(env);
+const env = parseDBEnv();
 const db = new MongoDb(env.SERVER, env.UN, env.PW, env.DB);
 
 //EXPORT CONTROLLER FUNCTIONS
