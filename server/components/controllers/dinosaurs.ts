@@ -56,6 +56,7 @@ export default {
   getDinosaur: async (ctx: RouterContext<RouteParams, Record<string, any>>) => {
     const slug = ctx.params.slug as string;
     if (db.connected === true) {
+      //!
       const { response } = ctx;
       console.log(log.blue(`⚡ /api/${slug} has a request!`));
       const dinosaur: Dinosaur | undefined = await db.listone(slug);
