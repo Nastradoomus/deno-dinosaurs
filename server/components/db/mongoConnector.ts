@@ -1,11 +1,11 @@
 /*
-  __  __    U  ___ u  _   _     ____    U  ___ u  ____    ____
-U|' \/ '|u   \/"_ \/ | \ |"| U /"___|u   \/"_ \/ |  _"\U | __")u
-\| |\/| |/   | | | |<|  \| |>\| |  _ /   | | | |/| | | |\|  _ \/
- | |  | |.-,_| |_| |U| |\  |u | |_| |.-,_| |_| |U| |_| |\| |_) |
- |_|  |_| \_)-\___/  |_| \_|   \____| \_)-\___/  |____/ u|____/
-<<,-,,-.       \\    ||   \\,-._)(|_       \\     |||_  _|| \\_
- (./  \.)     (__)   (_")  (_/(__)__)     (__)   (__)_)(__) (__)
+  __  __    U  ___ u  _   _     ____    U  ___ u  ____    ____         ____   U  ___ u  _   _     _   _   U _____ u   ____   _____   U  ___ u   ____
+U|' \/ '|u   \/"_ \/ | \ |"| U /"___|u   \/"_ \/ |  _"\U | __")u    U /"___|   \/"_ \/ | \ |"|   | \ |"|  \| ___"|/U /"___| |_ " _|   \/"_ \/U |  _"\ u
+\| |\/| |/   | | | |<|  \| |>\| |  _ /   | | | |/| | | |\|  _ \/    \| | u     | | | |<|  \| |> <|  \| |>  |  _|"  \| | u     | |     | | | | \| |_) |/
+ | |  | |.-,_| |_| |U| |\  |u | |_| |.-,_| |_| |U| |_| |\| |_) |     | |/__.-,_| |_| |U| |\  |u U| |\  |u  | |___   | |/__   /| |\.-,_| |_| |  |  _ <
+ |_|  |_| \_)-\___/  |_| \_|   \____| \_)-\___/  |____/ u|____/       \____|\_)-\___/  |_| \_|   |_| \_|   |_____|   \____| u |_|U \_)-\___/   |_| \_\
+<<,-,,-.       \\    ||   \\,-._)(|_       \\     |||_  _|| \\_      _// \\      \\    ||   \\,-.||   \\,-.<<   >>  _// \\  _// \\_     \\     //   \\_
+ (./  \.)     (__)   (_")  (_/(__)__)     (__)   (__)_)(__) (__)    (__)(__)    (__)   (_")  (_/ (_")  (_/(__) (__)(__)(__)(__) (__)   (__)   (__)  (__)
 */
 
 import { Database, MongoClient } from "https://deno.land/x/mongo/mod.ts";
@@ -23,23 +23,27 @@ export default class MongoDb {
     private password: string,
     private database: string,
   ) {
-    this.#mongo.connect(
-      "mongodb+srv://" + this.username + ":" + this.password + "@" +
-        this.host + "/" + this.database +
-        "?retryWrites=true&w=majority&authMechanism=SCRAM-SHA-1",
-    ).then(() => {
+    this.connect();
+  }
+  connect = async () => {
+    try {
+      await this.#mongo.connect(
+        "mongodb+srv://" + this.username + ":" + this.password + "@" +
+          this.host + "/" + this.database +
+          "?retryWrites=true&w=majority&authMechanism=SCRAM-SHA-1",
+      );
       this.#db = this.#mongo.database(this.database);
-    }).catch((e) => {
+    } catch (e) {
       console.log(`❌ ${e}`);
       console.log(log.red("❌ Fix MongoDB connection"));
       Deno.exit(0);
-    }).finally(() => {
+    } finally {
       this.#connected = true;
       console.log(
         log.brightMagenta("⚓ Mongo online & database: " + this.database),
       );
-    });
-  }
+    }
+  };
 
   get connected(): boolean {
     return this.#connected;
@@ -51,8 +55,10 @@ export default class MongoDb {
     );
   };
 
+  close = async () => this.#mongo.close();
+
   listone = async (slug: string): Promise<Dinosaur | undefined> => {
-    if (this.#db) {
+    if (this.#connected && this.#db) {
       try {
         const dinosaurs = this.#db.collection<DbSchema>("dinosaurs");
         return dinosaurs.findOne({ slug: slug });
@@ -68,7 +74,7 @@ export default class MongoDb {
     if (this.#connected && this.#db) {
       try {
         const dinosaurs = this.#db.collection<DbSchema>("dinosaurs");
-        return dinosaurs.find().toArray();
+        return dinosaurs.find({ noCursorTimeout: false }).toArray();
       } catch (e) {
         console.log(`❌ ${e}`);
       }
@@ -78,7 +84,10 @@ export default class MongoDb {
   slugExists = async (s: string) => {
     if (this.#connected && this.#db) {
       const dinosaurs = this.#db.collection<DbSchema>("dinosaurs");
-      const slugExists = await dinosaurs.findOne({ slug: s });
+      const slugExists = await dinosaurs.findOne({
+        noCursorTimeout: false,
+        slug: s,
+      });
       if (slugExists === null) {
         return false;
       } else return true;
@@ -114,6 +123,7 @@ export default class MongoDb {
       const dinosaurs = this.#db.collection<DbSchema>("dinosaurs");
       try {
         dinosaurs.deleteOne({
+          noCursorTimeout: false,
           slug: s,
         });
         console.log(

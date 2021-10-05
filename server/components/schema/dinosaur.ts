@@ -39,13 +39,9 @@ export default class Schema {
       description: yup.string().trim().min(5).required(),
       image: yup.string().trim().url(),
     });
-    const { name, slug, description, image } = this.dinosaur;
-    const o = {
-      "name": name,
-      "slug": slug,
-      "description": description,
-      "image": image,
-    };
+
+    const { name, slug, description } = this.dinosaur;
+    const o = this.dinosaur;
     const isvalid = schema.isValid(o);
     if (await isvalid === true) {
       console.log(

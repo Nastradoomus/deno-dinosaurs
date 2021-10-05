@@ -12,7 +12,7 @@ U| |_| |\  | |    U| |\  |u.-,_| |_| | u___) |  / ___ \   | |_| |  |  _ <       
 import type { Context, Response } from "https://deno.land/x/oak/mod.ts";
 
 //MONGODB
-import MongoDb from "../db/db.ts";
+import MongoConnector from "../db/mongoConnector.ts";
 
 //ENV
 import { parseDBEnv } from "../../../common/env.ts";
@@ -26,17 +26,8 @@ import DinosaurSchema from "../schema/dinosaur.ts";
 //CONSOLE
 import * as log from "https://deno.land/std/fmt/colors.ts";
 
-/*
-  __  __    U  ___ u  _   _     ____    U  ___ u  ____    ____
-U|' \/ '|u   \/"_ \/ | \ |"| U /"___|u   \/"_ \/ |  _"\U | __")u
-\| |\/| |/   | | | |<|  \| |>\| |  _ /   | | | |/| | | |\|  _ \/
- | |  | |.-,_| |_| |U| |\  |u | |_| |.-,_| |_| |U| |_| |\| |_) |
- |_|  |_| \_)-\___/  |_| \_|   \____| \_)-\___/  |____/ u|____/
-<<,-,,-.       \\    ||   \\,-._)(|_       \\     |||_  _|| \\_
- (./  \.)     (__)   (_")  (_/(__)__)     (__)   (__)_)(__) (__)
-*/
 const env = parseDBEnv();
-const db = new MongoDb(env.SERVER, env.UN, env.PW, env.DB);
+const db = new MongoConnector(env.SERVER, env.UN, env.PW, env.DB);
 
 //EXPORT CONTROLLER FUNCTIONS
 export default {
