@@ -9,33 +9,38 @@ U| |_| |\  | |    U| |\  |u.-,_| |_| | u___) |  / ___ \   | |_| |  |  _ <       
  */
 
 // ROUTER
-import { Router } from "https://deno.land/x/oak/mod.ts";
+import { Response, Router } from "https://deno.land/x/oak/mod.ts";
 
+//LOG
+import { red } from "https://deno.land/std/fmt/colors.ts";
 // CONTROLLERS
 import dinosaursController from "../controllers/dinosaurs.ts";
 
-let slug: string;
+import { DinosaurError } from "../typings/typings.ts";
+
+function errorResponse(e: DinosaurError, response: Response): void {
+  console.log(red("❌ " + e));
+  const { success, data } = e;
+  response.body = { success, data };
+}
 
 export default new Router()
+  .delete("/:slug", async (ctx) => {
+    try {
+      await dinosaursController.deleteDinosaur(ctx);
+    } catch (e) {
+      errorResponse(e, ctx.response);
+    }
+  })
   .get("/", dinosaursController.getDinosaurs)
-  .get("/dinosaur", (c) => {
-    const { response } = c;
-    response.status = 405;
-    response.body = {
-      success: false,
-      data: "❌ Check your slug!",
-    };
+  .get("/:slug", async (ctx) => {
+    try {
+      await dinosaursController.getDinosaur(ctx);
+    } catch (e) {
+      errorResponse(e, ctx.response);
+    }
   })
-  .get("/:slug", async (c) => {
-    if (c.params.slug) slug = c.params.slug;
-    await dinosaursController.getDinosaur(c, slug);
-  })
-  .post("/", async (c) => dinosaursController.addDinosaur(c))
-  .delete("/id", async (c) => {
-    if (c.params.slug) slug = c.params.slug;
-    await dinosaursController.deleteDinosaur(c, slug);
-  })
-  .put("/:slug", async (c) => {
-    if (c.params.slug) slug = c.params.slug;
-    await dinosaursController.updateDinosaur(c, slug);
+  .post("/", async (ctx) => dinosaursController.addDinosaur(ctx))
+  .put("/:slug", async (ctx) => {
+    await dinosaursController.updateDinosaur(ctx);
   });

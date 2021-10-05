@@ -10,7 +10,7 @@ U|' \/ '|u   \/"_ \/ | \ |"| U /"___|u   \/"_ \/ |  _"\U | __")u    U /"___|   \
 
 import { Database, MongoClient } from "https://deno.land/x/mongo/mod.ts";
 import * as log from "https://deno.land/std/fmt/colors.ts";
-import type { DbSchema, Dinosaur } from "../interfaces/dinosaur.ts";
+import type { DbSchema, Dinosaur } from "../typings/typings.ts";
 
 export default class MongoDb {
   #connected: boolean = false;
@@ -61,7 +61,7 @@ export default class MongoDb {
     if (this.#connected && this.#db) {
       try {
         const dinosaurs = this.#db.collection<DbSchema>("dinosaurs");
-        return dinosaurs.find({}, { noCursorTimeout: false }).toArray();
+        return await dinosaurs.find({}, { noCursorTimeout: false }).toArray();
       } catch (e) {
         console.log(`❌ ${e}`);
       }
@@ -72,7 +72,9 @@ export default class MongoDb {
     if (this.#connected && this.#db) {
       try {
         const dinosaurs = this.#db.collection<DbSchema>("dinosaurs");
-        return dinosaurs.findOne({ slug: slug }, { noCursorTimeout: false });
+        return await dinosaurs.findOne({ slug: slug }, {
+          noCursorTimeout: false,
+        });
       } catch (e) {
         console.log(`❌ ${e}`);
       }

@@ -27,16 +27,6 @@ import { Application } from "https://deno.land/x/oak/mod.ts";
 //ARGS
 import { parse } from "https://deno.land/std/flags/mod.ts";
 
-/*
-  ____   U _____ u   ____   __     __ U _____ u
- / __"| u\| ___"|/U |  _"\ u\ \   /"/u\| ___"|/
-<\___ \/  |  _|"   \| |_) |/ \ \ / //  |  _|"
- u___) |  | |___    |  _ <   /\ V /_,-.| |___
- |____/>> |_____|   |_| \_\ U  \_/-(_/ |_____|
-  )(  (__)<<   >>   //   \\_  //       <<   >>
- (__)    (__) (__) (__)  (__)(__)     (__) (__)
- */
-
 console.log(log.cyan("🦕 Welcome to Deno"));
 
 const app = new Application();
