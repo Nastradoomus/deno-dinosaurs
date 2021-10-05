@@ -57,11 +57,22 @@ export default class MongoDb {
 
   close = async () => this.#mongo.close();
 
+  list = async () => {
+    if (this.#connected && this.#db) {
+      try {
+        const dinosaurs = this.#db.collection<DbSchema>("dinosaurs");
+        return dinosaurs.find({}, { noCursorTimeout: false }).toArray();
+      } catch (e) {
+        console.log(`❌ ${e}`);
+      }
+    }
+  };
+
   listone = async (slug: string): Promise<Dinosaur | undefined> => {
     if (this.#connected && this.#db) {
       try {
         const dinosaurs = this.#db.collection<DbSchema>("dinosaurs");
-        return dinosaurs.findOne({ slug: slug });
+        return dinosaurs.findOne({ slug: slug }, { noCursorTimeout: false });
       } catch (e) {
         console.log(`❌ ${e}`);
       }
@@ -70,24 +81,12 @@ export default class MongoDb {
     return;
   };
 
-  list = async () => {
-    if (this.#connected && this.#db) {
-      try {
-        const dinosaurs = this.#db.collection<DbSchema>("dinosaurs");
-        return dinosaurs.find({ noCursorTimeout: false }).toArray();
-      } catch (e) {
-        console.log(`❌ ${e}`);
-      }
-    }
-  };
-
   slugExists = async (s: string) => {
     if (this.#connected && this.#db) {
       const dinosaurs = this.#db.collection<DbSchema>("dinosaurs");
       const slugExists = await dinosaurs.findOne({
-        noCursorTimeout: false,
         slug: s,
-      });
+      }, { noCursorTimeout: false });
       if (slugExists === null) {
         return false;
       } else return true;
@@ -123,7 +122,6 @@ export default class MongoDb {
       const dinosaurs = this.#db.collection<DbSchema>("dinosaurs");
       try {
         dinosaurs.deleteOne({
-          noCursorTimeout: false,
           slug: s,
         });
         console.log(
