@@ -13,14 +13,18 @@ import { Response, Router } from "https://deno.land/x/oak/mod.ts";
 
 //LOG
 import { red } from "https://deno.land/std/fmt/colors.ts";
-// CONTROLLERS
+
+//CONTROLLERS
 import dinosaursController from "../controllers/dinosaurs.ts";
 
-import { DinosaurError } from "../typings/typings.ts";
+//TYPES
+import { DinosaurError } from "../types/types.d.ts";
 
 function errorResponse(e: DinosaurError, response: Response): void {
+  const success = false;
+  const { data } = e;
+
   console.log(red("❌ " + e));
-  const { success, data } = e;
   response.body = { success, data };
 }
 
@@ -32,7 +36,13 @@ export default new Router()
       errorResponse(e, ctx.response);
     }
   })
-  .get("/", dinosaursController.getDinosaurs)
+  .get("/", async (ctx) => {
+    try {
+      dinosaursController.getDinosaurs;
+    } catch (e) {
+      errorResponse(e, ctx.response);
+    }
+  })
   .get("/:slug", async (ctx) => {
     try {
       await dinosaursController.getDinosaur(ctx);
@@ -40,7 +50,17 @@ export default new Router()
       errorResponse(e, ctx.response);
     }
   })
-  .post("/", async (ctx) => dinosaursController.addDinosaur(ctx))
+  .post("/", async (ctx) => {
+    try {
+      await dinosaursController.addDinosaur(ctx);
+    } catch (e) {
+      errorResponse(e, ctx.response);
+    }
+  })
   .put("/:slug", async (ctx) => {
-    await dinosaursController.updateDinosaur(ctx);
+    try {
+      await dinosaursController.updateDinosaur(ctx);
+    } catch (e) {
+      errorResponse(e, ctx.response);
+    }
   });

@@ -27,6 +27,9 @@ import { Application } from "https://deno.land/x/oak/mod.ts";
 //ARGS
 import { parse } from "https://deno.land/std/flags/mod.ts";
 
+//IP
+import { getIP } from "https://deno.land/x/get_ip/mod.ts";
+
 console.log(log.cyan("🦕 Welcome to Deno"));
 
 const app = new Application();
@@ -39,9 +42,10 @@ const { args } = Deno;
 const argPort = parse(args).port;
 
 app.addEventListener("listen", ({ hostname, port, secure }) => {
-  console.log(log.blue(
-    `👂 ${secure ? "https://" : "http://"}${hostname}:${port}`,
-  ));
+  console.log(
+    `Listening on: ${secure ? "https://" : "http://"}${hostname ??
+      "localhost"}:${port}`,
+  );
   console.log(log.green("🥕 Wait for Mongo connection..."));
 });
 

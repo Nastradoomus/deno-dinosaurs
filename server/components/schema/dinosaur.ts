@@ -1,5 +1,5 @@
 //INTERFACE
-import type { Dinosaur } from "../typings/typings.ts";
+import type { Dinosaur } from "../types/types.d.ts";
 
 //LOG
 import * as log from "https://deno.land/std/fmt/colors.ts";

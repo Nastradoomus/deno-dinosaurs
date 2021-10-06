@@ -20,14 +20,13 @@ export interface Dinosaur {
   id?: string | number[];
 }
 
-export interface DbSchema extends Dinosaur {
+export interface DinosaurDbSchema extends Dinosaur {
   _id: { $oid: string };
 }
 
 export interface DinosaurError extends Error {
-  slug: string;
   code: number;
-  success: false;
   data: string;
   response: Response;
+  slug?: string;
 }

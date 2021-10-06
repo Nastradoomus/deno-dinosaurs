@@ -21,35 +21,53 @@ import MongoConnector from "../db/mongoConnector.ts";
 //ENV
 import { parseDBEnv } from "../../../common/env.ts";
 
-//INTERFACE
-import type { Dinosaur } from "../typings/typings.ts";
-
 //SCHEMA
 import DinosaurSchema from "../schema/dinosaur.ts";
 
 //CONSOLE
 import * as log from "https://deno.land/std/fmt/colors.ts";
 
-const env = parseDBEnv();
-const db = new MongoConnector(env.SERVER, env.UN, env.PW, env.DB);
+//TYPES
+import { Dinosaur, DinosaurDbSchema } from "../types/types.d.ts";
 
+const env = parseDBEnv();
+const db = new MongoConnector<DinosaurDbSchema>(
+  env.SERVER,
+  env.UN,
+  env.PW,
+  env.DB,
+);
+
+function successResponse<T>(
+  message: string,
+  data: T,
+  response: Response,
+): void {
+  const success = true;
+  console.log(log.green("🦕" + message));
+  response.body = { success, data };
+}
 //EXPORT CONTROLLER FUNCTIONS
 export default {
-  getDinosaurs: async ({ response }: { response: Response }) => {
+  getDinosaurs: async (
+    ctx: RouterContext<RouteParams, Record<string, any>>,
+  ) => {
     if (db.connected === true) {
       console.log(log.blue("⚡ /api have a request!"));
-      const dinosaurs = await db.list();
-      response.body = {
-        data: dinosaurs,
-      };
+      const dinosaurs = await db.list<DinosaurDbSchema[]>();
+      if (dinosaurs) {
+        successResponse<DinosaurDbSchema[]>(
+          "Found dinosaurs!",
+          dinosaurs,
+          ctx.response,
+        );
+      }
     } else {
-      console.log(
-        log.red("❌ /api No database connection!"),
-      );
-      response.body = {
-        success: false,
-        data: "❌ Router: No database connection!",
-      };
+      const data = "❌ No database connection! 🐉 path: /api";
+      ctx.throw(500, data, {
+        code: 404,
+        data,
+      });
     }
   },
 
@@ -59,7 +77,7 @@ export default {
       //!
       const { response } = ctx;
       console.log(log.blue(`⚡ /api/${slug} has a request!`));
-      const dinosaur: Dinosaur | undefined = await db.listone(slug);
+      const dinosaur = await db.listOneWithSlug<DinosaurDbSchema>(slug);
       if (dinosaur) {
         response.body = {
           data: dinosaur,
@@ -67,10 +85,9 @@ export default {
       } else {
         const data = "Response code 404. 🐉 Dinosaur " + slug + " not found!";
         ctx.throw(404, data, {
-          slug,
           code: 404,
-          success: false,
           data,
+          slug,
         });
       }
     } else {
