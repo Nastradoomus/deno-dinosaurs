@@ -28,7 +28,7 @@ import { parse } from "https://deno.land/std/flags/mod.ts";
 import { getIP } from "https://deno.land/x/get_ip/mod.ts";
 
 //LOCAL
-import { isLocal } from "../common/env.ts";
+import { herokuUrl, isLocal } from "../common/env.ts";
 
 //LOGGER
 import * as logger from "../common/log.ts";
@@ -43,10 +43,11 @@ app.use(router.allowedMethods());
 const defaultPort = 1337;
 const { args } = Deno;
 const argPort = parse(args).port;
-
 let realHostname = parse(args).host;
 if (!realHostname) {
-  realHostname = isLocal() ? "127.0.0.1" : await getIP();
+  const heroku = herokuUrl();
+  if (heroku) realHostname = heroku;
+  else realHostname = isLocal() ? "127.0.0.1" : await getIP();
 }
 
 app.addEventListener("listen", ({ port, secure }) => {

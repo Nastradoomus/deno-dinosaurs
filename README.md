@@ -2,7 +2,8 @@
 
 ## 1. Get deno [Deno](https://deno.land/#installation)
 ### 2. Get [Velociraptor](https://github.com/umbopepato/velociraptor)
-### 3. Run vr serve
+### 3. Fill .env from .env.example (See Heroku for additional information)
+### 4. Run vr serve
 
 ---
 
@@ -24,3 +25,10 @@ Package does not have any version locks in imports which means that things will 
 - [ ] [Fre](https://deno.land/x/fre)
 - [ ] Angluar
 - [ ] Alpinejs
+
+
+#### For Heroku deploy
+- For non Heroku deployment leave HEROKUAPP_URL as undefined
+- Set Heroku environment variables (env.example).
+- Set Heroku app url.
+- Skip LOCAL or set it to false

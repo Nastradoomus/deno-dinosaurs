@@ -78,3 +78,10 @@ export function isLocal(): boolean | undefined {
   }
   return;
 }
+export function herokuUrl(): string | undefined {
+  let denoEnv = Deno.env.toObject();
+  if (Object.prototype.hasOwnProperty.call(denoEnv, "HEROKUAPP_URL")) {
+    return denoEnv.HEROKUAPP_URL;
+  }
+  return;
+}
