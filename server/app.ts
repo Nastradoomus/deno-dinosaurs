@@ -53,9 +53,8 @@ if (!local) realHostname = await getIP();
 else realHostname = "127.0.0.1";
 */
 app.addEventListener("listen", async ({ hostname, port, secure }) => {
-  console.log(realHostname);
   logger.green(
-    `Listening on: ${secure ? "https://" : "http://"}${realHostname ??
+    `Listening on: ${secure ? "https://" : "http://"}${hostname ??
       "localhost"}:${port}`,
   );
   logger.green("🥕 Wait for Mongo connection...");
