@@ -43,12 +43,16 @@ app.use(router.allowedMethods());
 const defaultPort = 1337;
 const { args } = Deno;
 const argPort = parse(args).port;
-const local = isLocal();
+console.log(argPort);
+/*
+const realHostname = parse(args).host;
+if (!realHost) {const local = isLocal();}
 
+let realHostname: string | Promise<string>;
+if (!local) realHostname = await getIP();
+else realHostname = "127.0.0.1";
+*/
 app.addEventListener("listen", async ({ hostname, port, secure }) => {
-  let realHostname: string | Promise<string>;
-  if (!local) realHostname = await getIP();
-  else realHostname = "127.0.0.1";
   console.log(realHostname);
   logger.green(
     `Listening on: ${secure ? "https://" : "http://"}${realHostname ??
