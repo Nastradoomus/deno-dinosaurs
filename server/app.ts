@@ -15,9 +15,6 @@
                           (__)_) (__) (__)(_")  (_/    (__)      (__)  (__)(__)__)  (__)__)
 */
 
-//CONSOLE
-import * as log from "https://deno.land/std/fmt/colors.ts";
-
 //ROUTES
 import router from "./components/routes/index.ts";
 
@@ -30,7 +27,13 @@ import { parse } from "https://deno.land/std/flags/mod.ts";
 //IP
 import { getIP } from "https://deno.land/x/get_ip/mod.ts";
 
-console.log(log.cyan("🦕 Welcome to Deno"));
+//LOCAL
+import { isLocal } from "../common/env.ts";
+
+//LOGGER
+import * as logger from "../common/log.ts";
+
+logger.cyan("🦕 Welcome to Deno");
 
 const app = new Application();
 
@@ -40,13 +43,18 @@ app.use(router.allowedMethods());
 const defaultPort = 1337;
 const { args } = Deno;
 const argPort = parse(args).port;
+const local = isLocal();
 
-app.addEventListener("listen", ({ hostname, port, secure }) => {
-  console.log(
-    `Listening on: ${secure ? "https://" : "http://"}${hostname ??
+app.addEventListener("listen", async ({ hostname, port, secure }) => {
+  let realHostname: string | Promise<string>;
+  if (!local) realHostname = await getIP();
+  else realHostname = "127.0.0.1";
+  console.log(realHostname);
+  logger.green(
+    `Listening on: ${secure ? "https://" : "http://"}${realHostname ??
       "localhost"}:${port}`,
   );
-  console.log(log.green("🥕 Wait for Mongo connection..."));
+  logger.green("🥕 Wait for Mongo connection...");
 });
 
 await app.listen({ port: argPort ? Number(argPort) : defaultPort });

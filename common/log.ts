@@ -55,3 +55,18 @@ export function brightMagenta(message: string): void {
 export function yellow(message: string): void {
   console.log(colors.yellow(message));
 }
+
+export function cyan(message: string): void {
+  console.log(colors.cyan(message));
+}
+
+export function bgRed(message: string): void {
+  console.log(colors.bgRed(message));
+}
+
+export function blue(message: string): void {
+  console.log(colors.blue(message));
+}
+export function green(message: string): void {
+  console.log(colors.green(message));
+}

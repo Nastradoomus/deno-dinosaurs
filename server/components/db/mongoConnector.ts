@@ -8,14 +8,19 @@ U|' \/ '|u   \/"_ \/ | \ |"| U /"___|u   \/"_ \/ |  _"\U | __")u    U /"___|   \
  (./  \.)     (__)   (_")  (_/(__)__)     (__)   (__)_)(__) (__)    (__)(__)    (__)   (_")  (_/ (_")  (_/(__) (__)(__)(__)(__) (__)   (__)   (__)  (__)
 */
 
+// MONGODB
 import {
+  Collection,
   Database,
   Filter,
   MongoClient,
 } from "https://deno.land/x/mongo/mod.ts";
-import * as logger from "../../../common/log.ts";
+
+// TYPES
 import type { Dinosaur, DinosaurDbSchema, WithSlug } from "../types/types.d.ts";
-import { Collection } from "https://deno.land/x/mongo/mod.ts";
+
+//LOGGER
+import * as logger from "../../../common/log.ts";
 
 export default class MongoDb<T> {
   #mongo = new MongoClient();

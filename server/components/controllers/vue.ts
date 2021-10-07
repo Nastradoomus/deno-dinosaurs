@@ -15,13 +15,13 @@ import type { Context, Response } from "https://deno.land/x/oak/mod.ts";
 import { config } from "https://deno.land/x/dotenv/mod.ts";
 
 //INTERFACE
-import type { Dinosaur } from "../interfaces/dinosaur.ts";
+import type { Dinosaur } from "../types/types.d.ts";
 
 //SCHEMA
 import DinosaurSchema from "../schema/dinosaur.ts";
 
-//CONSOLE
-import * as log from "https://deno.land/std/fmt/colors.ts";
+//LOGGER
+import * as logger from "../../../common/log.ts";
 
 export default {
   init: async ({ response }: { response: Response }) => {

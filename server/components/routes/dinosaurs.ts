@@ -26,7 +26,6 @@ import * as logger from "../../../common/log.ts";
 function errorResponse(e: DinosaurError, response: Response): void {
   const success = false;
   const { data } = e;
-
   logger.redTimestamp(red("❌ " + e));
   response.body = { success, data };
 }

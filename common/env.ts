@@ -10,13 +10,19 @@ U _____ u _   _  __     __
 
 //ENV
 import { config, DotenvConfig } from "https://deno.land/x/dotenv/mod.ts";
-import * as log from "https://deno.land/std/fmt/colors.ts";
+
+//LOGGER
+import * as logger from "./log.ts";
 
 export interface DbEnv {
   SERVER: string;
   UN: string;
   PW: string;
   DB: string;
+}
+
+export interface Env extends DbEnv {
+  LOCAL: boolean;
 }
 
 export type DbEnvErrors = Array<keyof DbEnv>;
@@ -32,17 +38,12 @@ export function parseDBEnv(): DbEnv {
   if (env.PW === undefined) errors.push("PW");
   if (env.DB === undefined) errors.push("DB");
   if (errors.length > 0) {
-    console.log(
-      log.cyan(
-        "❌ Missing following properties from .env: " + errors.join(),
-      ),
+    logger.cyan(
+      "❌ Missing following properties from .env: " + errors.join(),
     );
-    console.log(
-      log.cyan(
-        "❎ Parsing global ENVIRONMENT variables (Heroku)",
-      ),
-    );
-    errors.splice(0, errors.length);
+    logger.cyan(
+      "❎ Parsing global ENVIRONMENT variables (Heroku)",
+    ), errors.splice(0, errors.length);
     env = createEmptyDBEnv();
     let denoEnv = Deno.env.toObject();
     if (Object.prototype.hasOwnProperty.call(denoEnv, "SERVER")) {
@@ -58,27 +59,22 @@ export function parseDBEnv(): DbEnv {
       env.DB = denoEnv.DB;
     } else errors.push("DB");
     if (errors.length > 0) {
-      console.log(
-        log.bgRed(
-          "❌ Missing following properties from global ENVIRONMENT variables (Heroku): " +
-            errors.join(),
-        ),
-      ),
-        console.log(
-          log.bgRed(
-            "❌ Fix your MongoDB configuration.",
-          ),
-        ),
-        console.log(
-          log.blue("☠ Exiting application..."),
-        );
+      logger.bgRed(
+        "❌ Missing following properties from global ENVIRONMENT variables (Heroku): " +
+          errors.join(),
+      );
+      logger.bgRed("❌ Fix your MongoDB configuration.");
+      logger.blue("☠ Exiting application...");
       Deno.exit(0);
     }
   }
-  const result = { SERVER: env.SERVER, UN: env.UN, PW: env.PW, DB: env.DB };
-  console.log(
-    log.green("✔ Database environment variables ok!"),
-  );
-
-  return result;
+  logger.green("✔ Database environment variables ok!");
+  return { SERVER: env.SERVER, UN: env.UN, PW: env.PW, DB: env.DB };
+}
+export function isLocal(): boolean | undefined {
+  const env: DotenvConfig = config();
+  if (Object.prototype.hasOwnProperty.call(env, "LOCAL")) {
+    return (env.LOCAL === "true") ? true : false;
+  }
+  return;
 }

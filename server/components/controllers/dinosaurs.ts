@@ -24,11 +24,10 @@ import { parseDBEnv } from "../../../common/env.ts";
 //SCHEMA
 import DinosaurSchema from "../schema/dinosaur.ts";
 
-//CONSOLE
-import * as log from "https://deno.land/std/fmt/colors.ts";
-
 //TYPES
 import { Dinosaur, DinosaurDbSchema } from "../types/types.d.ts";
+
+//LOGGER
 import * as logger from "../../../common/log.ts";
 
 const env = parseDBEnv();
@@ -45,10 +44,24 @@ function successResponse<T>(
   response: Response,
 ): void {
   const success = true;
-  logger.greenTimestamp("🦕" + message);
+  logger.greenTimestamp("🦕 " + message);
   response.body = { success, data };
 }
-//EXPORT CONTROLLER FUNCTIONS
+
+function throwRouterError(
+  code: number,
+  message: string,
+  ctx: RouterContext<RouteParams, Record<string, any>>,
+  slug?: string | undefined,
+): void {
+  const data = code + ", " + message;
+  ctx.throw(code, data, {
+    code,
+    data,
+    slug,
+  });
+}
+
 export default {
   getDinosaurs: async (
     ctx: RouterContext<RouteParams, Record<string, any>>,
@@ -64,11 +77,7 @@ export default {
         );
       }
     } else {
-      const data = "500, No database connection 🐉 @/api";
-      ctx.throw(500, data, {
-        code: 404,
-        data,
-      });
+      throwRouterError(500, "No database connection 🐉 @/api", ctx);
     }
   },
 
@@ -84,16 +93,10 @@ export default {
           data: dinosaur,
         };
       } else {
-        const data = "404, 🐉 @/api/" + slug + " not found...";
-        ctx.throw(404, data, {
-          code: 404,
-          data,
-          slug,
-        });
+        throwRouterError(404, "🐉 @/api/" + slug + " not found...", ctx, slug);
       }
     } else {
-      const data = "500, No database connection 🐉 @/api/" + slug +
-        ".";
+      const data = "500, No database connection 🐉 @/api/" + slug;
       ctx.throw(500, data, {
         slug,
         code: 500,
@@ -107,19 +110,19 @@ export default {
     if (db.connected) {
       const { request, response } = ctx;
       if (!request.hasBody) {
-        console.log(log.red("❌ POST /api Empty JSON"));
+        logger.red("❌ POST /api Empty JSON");
         ctx.throw(400, "🧨 Empty JSON");
       } else {
-        const result = await request.body();
+        const result = request.body(); //await?
         if (result.type === "json") {
           try {
             const data: Dinosaur = await result.value;
             const schema = new DinosaurSchema(data);
-            if (await schema.validate() === true) {
+            if (await schema.validate()) {
               const { dinosaur } = schema;
               const { slug } = dinosaur;
               if (!await db.slugExists(slug)) {
-                if (await db.add(dinosaur) === true) {
+                if (await db.add(dinosaur)) {
                   response.body = {
                     success: true,
                     data: "🦕 Dinosaur added to database with a slug: " + slug +
@@ -127,7 +130,7 @@ export default {
                   };
                 }
               } else {
-                console.log("❌ Slug in use!");
+                logger.red("❌ Slug in use!");
                 response.status = 406;
                 response.body = {
                   success: false,
@@ -144,7 +147,7 @@ export default {
               };
             }
           } catch (err) {
-            console.log(log.red("❌ POST /api Not JSON"));
+            logger.red("❌ POST /api Not JSON");
             response.status = 405;
             response.body = {
               success: false,
@@ -152,7 +155,7 @@ export default {
             };
           }
         } else {
-          console.log(log.red("❌ POST /api Not JSON"));
+          logger.red("❌ POST /api Not JSON");
           response.status = 405;
           response.body = {
             success: false,
@@ -161,13 +164,11 @@ export default {
         }
       }
     } else {
-      console.log(
-        log.red(`❌ POST /api *No database connection!*`),
-      );
-      ctx.response.body = {
-        success: false,
-        data: "❌ Router: No database connection!",
-      };
+      logger.red(`❌ POST /api *No database connection!*`),
+        ctx.response.body = {
+          success: false,
+          data: "❌ Router: No database connection!",
+        };
     }
   },
 
@@ -180,7 +181,7 @@ export default {
       if (await db.slugExists(slug) === true) {
         console.log("true");
         const dinosaur = await db.remove(slug);
-        console.log(log.red(`🪂 /api/${slug} has been removed!`));
+        logger.red(`🪂 /api/${slug} has been removed!`);
         if (dinosaur) {
           response.body = {
             data: dinosaur,
@@ -197,13 +198,11 @@ export default {
         });
       }
     } else {
-      console.log(
-        log.red(`❌ /api/${slug} No database connection!`),
-      );
-      ctx.response.body = {
-        success: false,
-        data: "❌ Router: No database connection!",
-      };
+      logger.red(`❌ /api/${slug} No database connection!`),
+        ctx.response.body = {
+          success: false,
+          data: "❌ Router: No database connection!",
+        };
     }
     /*
     const filteredDinosaurs: Array<Dinosaur> = stubDinosaurs.filter(
