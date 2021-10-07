@@ -43,18 +43,15 @@ app.use(router.allowedMethods());
 const defaultPort = 1337;
 const { args } = Deno;
 const argPort = parse(args).port;
-console.log(argPort);
-/*
-const realHostname = parse(args).host;
-if (!realHost) {const local = isLocal();}
 
-let realHostname: string | Promise<string>;
-if (!local) realHostname = await getIP();
-else realHostname = "127.0.0.1";
-*/
-app.addEventListener("listen", async ({ hostname, port, secure }) => {
+let realHostname = parse(args).host;
+if (!realHostname) {
+  realHostname = isLocal() ? "127.0.0.1" : await getIP();
+}
+
+app.addEventListener("listen", ({ port, secure }) => {
   logger.green(
-    `Listening on: ${secure ? "https://" : "http://"}${hostname ??
+    `Listening on: ${secure ? "https://" : "http://"}${realHostname ??
       "localhost"}:${port}`,
   );
   logger.green("🥕 Wait for Mongo connection...");
