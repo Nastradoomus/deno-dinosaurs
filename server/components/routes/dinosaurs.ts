@@ -20,11 +20,14 @@ import dinosaursController from "../controllers/dinosaurs.ts";
 //TYPES
 import { DinosaurError } from "../types/types.d.ts";
 
+//LOGGER
+import * as logger from "../../../common/log.ts";
+
 function errorResponse(e: DinosaurError, response: Response): void {
   const success = false;
   const { data } = e;
 
-  console.log(red("❌ " + e));
+  logger.redTimestamp(red("❌ " + e));
   response.body = { success, data };
 }
 
@@ -38,7 +41,7 @@ export default new Router()
   })
   .get("/", async (ctx) => {
     try {
-      dinosaursController.getDinosaurs;
+      await dinosaursController.getDinosaurs(ctx);
     } catch (e) {
       errorResponse(e, ctx.response);
     }

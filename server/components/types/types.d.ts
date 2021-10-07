@@ -30,3 +30,7 @@ export interface DinosaurError extends Error {
   response: Response;
   slug?: string;
 }
+
+type WithSlug<P> = P & {
+  slug: string;
+};

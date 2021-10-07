@@ -29,6 +29,7 @@ import * as log from "https://deno.land/std/fmt/colors.ts";
 
 //TYPES
 import { Dinosaur, DinosaurDbSchema } from "../types/types.d.ts";
+import * as logger from "../../../common/log.ts";
 
 const env = parseDBEnv();
 const db = new MongoConnector<DinosaurDbSchema>(
@@ -44,7 +45,7 @@ function successResponse<T>(
   response: Response,
 ): void {
   const success = true;
-  console.log(log.green("🦕" + message));
+  logger.greenTimestamp("🦕" + message);
   response.body = { success, data };
 }
 //EXPORT CONTROLLER FUNCTIONS
@@ -52,8 +53,8 @@ export default {
   getDinosaurs: async (
     ctx: RouterContext<RouteParams, Record<string, any>>,
   ) => {
-    if (db.connected === true) {
-      console.log(log.blue("⚡ /api have a request!"));
+    if (db.connected) {
+      logger.blueTimestamp("⚡ /api have a request!");
       const dinosaurs = await db.list<DinosaurDbSchema[]>();
       if (dinosaurs) {
         successResponse<DinosaurDbSchema[]>(
@@ -63,7 +64,7 @@ export default {
         );
       }
     } else {
-      const data = "❌ No database connection! 🐉 path: /api";
+      const data = "500, No database connection 🐉 @/api";
       ctx.throw(500, data, {
         code: 404,
         data,
@@ -73,17 +74,17 @@ export default {
 
   getDinosaur: async (ctx: RouterContext<RouteParams, Record<string, any>>) => {
     const slug = ctx.params.slug as string;
-    if (db.connected === true) {
+    if (db.connected) {
       //!
       const { response } = ctx;
-      console.log(log.blue(`⚡ /api/${slug} has a request!`));
+      logger.blueTimestamp(`⚡ /api/${slug} has a request!`);
       const dinosaur = await db.listOneWithSlug<DinosaurDbSchema>(slug);
       if (dinosaur) {
         response.body = {
           data: dinosaur,
         };
       } else {
-        const data = "Response code 404. 🐉 Dinosaur " + slug + " not found!";
+        const data = "404, 🐉 @/api/" + slug + " not found...";
         ctx.throw(404, data, {
           code: 404,
           data,
@@ -91,7 +92,7 @@ export default {
         });
       }
     } else {
-      const data = "❌ No database connection! 🐉 Requested slug: " + slug +
+      const data = "500, No database connection 🐉 @/api/" + slug +
         ".";
       ctx.throw(500, data, {
         slug,
@@ -103,7 +104,7 @@ export default {
   },
 
   addDinosaur: async (ctx: RouterContext<RouteParams, Record<string, any>>) => {
-    if (db.connected === true) {
+    if (db.connected) {
       const { request, response } = ctx;
       if (!request.hasBody) {
         console.log(log.red("❌ POST /api Empty JSON"));
@@ -117,7 +118,7 @@ export default {
             if (await schema.validate() === true) {
               const { dinosaur } = schema;
               const { slug } = dinosaur;
-              if (await db.slugExists(slug) === false) {
+              if (!await db.slugExists(slug)) {
                 if (await db.add(dinosaur) === true) {
                   response.body = {
                     success: true,
@@ -174,7 +175,7 @@ export default {
     ctx: RouterContext<RouteParams, Record<string, any>>,
   ) => {
     const slug = ctx.params.slug as string;
-    if (db.connected === true) {
+    if (db.connected) {
       const { response } = ctx;
       if (await db.slugExists(slug) === true) {
         console.log("true");

@@ -1,18 +1,3 @@
-//INTERFACE
-import type { Dinosaur } from "../types/types.d.ts";
-
-//LOG
-import * as log from "https://deno.land/std/fmt/colors.ts";
-
-//SLUGIFY
-import { slugify } from "../helpers/slugify.ts";
-
-//YUP
-import * as yup from "https://cdn.skypack.dev/yup?dts";
-
-//SANITIZE
-import { XmlEntities as Sanitize } from "https://deno.land/x/html_entities@v1.0/mod.js";
-
 /*
   ____      ____   _   _  U _____ u  __  __      _
  / __"| uU /"___| |'| |'| \| ___"|/U|' \/ '|uU  /"\  u
@@ -23,6 +8,21 @@ import { XmlEntities as Sanitize } from "https://deno.land/x/html_entities@v1.0/
  (__)    (__)(__)(_") ("_)(__) (__) (./  \.) (__)  (__)
 
 */
+
+//LOG
+import * as logger from "../../../common/log.ts";
+
+//SLUGIFY
+import { slugify } from "../helpers/slugify.ts";
+
+//YUP
+import * as yup from "https://cdn.skypack.dev/yup?dts";
+
+//SANITIZE
+import { XmlEntities as Sanitize } from "https://deno.land/x/html_entities@v1.0/mod.js";
+
+//TYPES
+import type { Dinosaur } from "../types/types.d.ts";
 
 export default class Schema {
   dinosaur: Dinosaur;
@@ -43,21 +43,16 @@ export default class Schema {
     const { name, slug, description } = this.dinosaur;
     const o = this.dinosaur;
     const isvalid = schema.isValid(o);
-    if (await isvalid === true) {
-      console.log(
-        log.green(
-          log.bold(
-            "🐉 New Dinosaur is valid. Sanitizing data and creating slug...",
-          ),
-        ),
-      );
-      this.dinosaur.slug = slugify(slug);
+    if (await isvalid) {
+      logger.greenBoldTimestamp(
+        "🐉 New Dinosaur is valid. Sanitizing data and creating slug...",
+      ), this.dinosaur.slug = slugify(slug);
       this.dinosaur.name = Sanitize.encode(name);
       this.dinosaur.description = Sanitize.encode(description);
     } else {
-      schema.validate(o).catch(function (err: Record<string, unknown>) {
-        console.log(log.red(log.bold("❌ Not valid: " + JSON.stringify(o))));
-        console.log(log.red(log.bold("❌ " + err)));
+      schema.validate(o).catch(function (e: Record<string, unknown>) {
+        logger.redBoldTimestamp("❌ Not valid: " + JSON.stringify(o));
+        logger.redBoldTimestamp("❌ " + e);
       });
     }
     return new Promise(function (resolve, reject) {

@@ -13,12 +13,11 @@ import {
   Filter,
   MongoClient,
 } from "https://deno.land/x/mongo/mod.ts";
-import * as log from "https://deno.land/std/fmt/colors.ts";
-import type { Dinosaur, DinosaurDbSchema } from "../types/types.d.ts";
+import * as logger from "../../../common/log.ts";
+import type { Dinosaur, DinosaurDbSchema, WithSlug } from "../types/types.d.ts";
 import { Collection } from "https://deno.land/x/mongo/mod.ts";
 
 export default class MongoDb<T> {
-  #connected: boolean = false;
   #mongo = new MongoClient();
   #db: Database | undefined;
   #collection: Collection<T> | undefined;
@@ -31,6 +30,7 @@ export default class MongoDb<T> {
   ) {
     this.connect();
   }
+
   connect = async () => {
     try {
       await this.#mongo.connect(
@@ -40,19 +40,17 @@ export default class MongoDb<T> {
       );
       this.#db = this.#mongo.database(this.database);
       this.#collection = this.#db.collection<T>("dinosaurs");
-      if (this.#db && this.#collection) this.#connected = true;
-      console.log(
-        log.brightMagenta("⚓ Mongo online & database: " + this.database),
-      );
+      logger.brightMagenta("⚓ Mongo online & database: " + this.database);
     } catch (e) {
-      console.log(`❌ ${e}`);
-      console.log(log.red("❌ Fix MongoDB connection"));
+      logger.red(`❌ ${e}`);
+      logger.red("❌ Fix MongoDB connection");
       Deno.exit(0);
     }
   };
 
-  get connected(): boolean {
-    return this.#connected;
+  get connected(): true | undefined {
+    if (this.#db) return true;
+    return;
   }
 
   get dinosaurs(): Collection<T> | undefined {
@@ -60,95 +58,82 @@ export default class MongoDb<T> {
   }
 
   getSettings = () => {
-    console.log(
-      log.yellow("Your Mongo data is:" + JSON.stringify(this, null, 2)),
-    );
+    logger.yellow("Your Mongo data is:" + JSON.stringify(this, null, 2));
   };
 
   close = async () => this.#mongo.close();
 
   list = async <T>(): Promise<T | undefined> => {
-    if (this.#connected) {
+    if (this.#db) {
       try {
         return await this.#collection!.find({}, { noCursorTimeout: false })
           .toArray() as unknown as T;
       } catch (e) {
-        console.log(`❌ ${e}`);
+        logger.red(`❌ ${e}`);
       }
     }
   };
 
   listOneWithSlug = async <T>(slug: string): Promise<T | undefined> => {
-    if (this.#connected) {
-      type WithSlug<P> = P & {
-        slug: string;
-      };
-      try {
-        const result = await this.#collection!
-          .findOne(
-            { slug } as Filter<WithSlug<T>>,
-            {
-              noCursorTimeout: false,
-            },
-          ) as unknown as T;
-        return result;
-      } catch (e) {
-        console.log(`❌ ${e}`);
-      }
+    if (!this.#db) return;
+    try {
+      const result = await this.#collection!
+        .findOne(
+          { slug } as Filter<WithSlug<T>>,
+          {
+            noCursorTimeout: false,
+          },
+        ) as unknown as T;
+      return result;
+    } catch (e) {
+      logger.red(`❌ ${e}`);
     }
   };
 
-  slugExists = async (s: string) => {
-    if (this.#connected && this.#db) {
-      const dinosaurs = this.#db.collection<DinosaurDbSchema>("dinosaurs");
-      const slugExists = await dinosaurs.findOne({
+  slugExists = async (slug: string): Promise<true | undefined> => {
+    if (!this.#db) return;
+    const dinosaurs = this.#db.collection<DinosaurDbSchema>("dinosaurs");
+    const slugExists = await dinosaurs.findOne({
+      slug,
+    }, { noCursorTimeout: false });
+    if (slugExists === null) {
+      return;
+    } else return true;
+  };
+
+  add = async (d: Dinosaur): Promise<true | undefined> => {
+    if (!this.#db) return;
+    const { name, slug, description, image } = d;
+    const dinosaurs = this.#db.collection<DinosaurDbSchema>("dinosaurs");
+    try {
+      dinosaurs.insertOne({
+        name: name,
+        slug: slug,
+        description: description,
+        image: image,
+      });
+      logger.blueTimestamp(
+        "⛳ Added a new dinosaur to database with a slug: " + slug + ".",
+      );
+      return true;
+    } catch (e) {
+      logger.red("❌ Could not add a dinosaur to database!");
+    }
+    return;
+  };
+
+  remove = async (s: string): Promise<true | undefined> => {
+    if (!this.#db) return;
+    const dinosaurs = this.#db.collection<DinosaurDbSchema>("dinosaurs");
+    try {
+      dinosaurs.deleteOne({
         slug: s,
-      }, { noCursorTimeout: false });
-      if (slugExists === null) {
-        return false;
-      } else return true;
+      });
+      logger.red("💔 Removed dinosaur with a slug " + s + " from database!");
+      return true;
+    } catch (e) {
+      logger.red("❌ Could not remove a dinosaur from database!");
     }
-  };
-
-  add = async (d: Dinosaur) => {
-    if (this.#connected && this.#db && this.#db) {
-      const { name, slug, description, image } = d;
-      const dinosaurs = this.#db.collection<DinosaurDbSchema>("dinosaurs");
-      try {
-        dinosaurs.insertOne({
-          name: name,
-          slug: slug,
-          description: description,
-          image: image,
-        });
-        console.log(
-          log.blue(
-            "⛳ Added a new dinosaur to database with a slug: " + slug + ".",
-          ),
-        );
-        return true;
-      } catch (e) {
-        console.log(log.red("❌ Could not add a dinosaur to database!"));
-        return false;
-      }
-    }
-  };
-
-  remove = async (s: string) => {
-    if (this.#connected && this.#db) {
-      const dinosaurs = this.#db.collection<DinosaurDbSchema>("dinosaurs");
-      try {
-        dinosaurs.deleteOne({
-          slug: s,
-        });
-        console.log(
-          log.red("💔 Removed dinosaur with a slug " + s + " from database!"),
-        );
-        return true;
-      } catch (e) {
-        console.log(log.red("❌ Could not remove a dinosaur fromdatabase!"));
-        return false;
-      }
-    }
+    return;
   };
 }
