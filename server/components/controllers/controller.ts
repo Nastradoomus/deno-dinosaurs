@@ -9,7 +9,7 @@ U /"___|   \/"_ \/ | \ |"|   |_ " _|U |  _"\ u  \/"_ \/  |"|     |"|    \| ___"|
 */
 
 // RESPONSE
-import { Response } from "https://deno.land/x/oak/mod.ts";
+import { Response } from "https://deno.land/x/oak@v10.5.1/mod.ts";
 //"https://deno.land/x/oak@v9.0.1/mod.ts";
 
 export default {
