@@ -20,7 +20,7 @@ import router from "./components/routes/index.ts";
 
 //OAK
 import { Application } from "https://deno.land/x/oak/mod.ts";
-
+"https://deno.land/x/oak@v9.0.1/mod.ts";
 //ARGS
 import { parse } from "https://deno.land/std/flags/mod.ts";
 
@@ -43,18 +43,25 @@ app.use(router.allowedMethods());
 const defaultPort = 1337;
 const { args } = Deno;
 const argPort = parse(args).port;
-let realHostname = parse(args).host;
-if (!realHostname) {
-  const heroku = herokuUrl();
-  if (heroku) realHostname = heroku;
-  else realHostname = isLocal() ? "127.0.0.1" : await getIP();
+let hostname = parse(args).host;
+let heroku: string | undefined;
+if (!hostname) {
+  heroku = herokuUrl();
+  if (heroku) hostname = heroku;
+  else hostname = isLocal() ? "127.0.0.1" : await getIP();
 }
 
 app.addEventListener("listen", ({ port, secure }) => {
-  logger.green(
-    `Listening on: ${secure ? "https://" : "http://"}${realHostname ??
-      "localhost"}:${port}`,
-  );
+  let message;
+  if (heroku) {
+    message = `Listening on: ${secure ? "https://" : "http://"}${hostname}`;
+  } else {
+    message = `Listening on: ${secure ? "https://" : "http://"}${
+      hostname ??
+        "localhost"
+    }:${port}`;
+  }
+  logger.green(message);
   logger.green("🥕 Wait for Mongo connection...");
 });
 

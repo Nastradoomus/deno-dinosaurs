@@ -9,11 +9,12 @@ U| |_| |\  | |    U| |\  |u.-,_| |_| | u___) |  / ___ \   | |_| |  |  _ <       
 */
 
 // REQUEST & RESPONSE
-import type {
+import {
+  Context,
   Response,
-  RouteParams,
-  RouterContext,
-} from "https://deno.land/x/oak/mod.ts";
+  Status,
+} from "https://deno.land/x/oak@v10.5.1/mod.ts";
+//"https://deno.land/x/oak@v9.0.1/mod.ts";
 
 //MONGODB
 import MongoConnector from "../db/mongoConnector.ts";
@@ -32,7 +33,7 @@ import * as logger from "../../../common/log.ts";
 
 const env = parseDBEnv();
 const db = new MongoConnector<DinosaurDbSchema>(
-  env.SERVER,
+  env.MONGO_SERVER,
   env.UN,
   env.PW,
   env.DB,
@@ -48,10 +49,10 @@ function successResponse<T>(
   response.body = { success, data };
 }
 
-function throwRouterError(
+function throwRouterError<T>(
   code: number,
   message: string,
-  ctx: RouterContext<RouteParams, Record<string, any>>,
+  ctx: Context,
   slug?: string | undefined,
 ): void {
   const data = code + ", " + message;
@@ -63,11 +64,9 @@ function throwRouterError(
 }
 
 export default {
-  getDinosaurs: async (
-    ctx: RouterContext<RouteParams, Record<string, any>>,
-  ) => {
+  getDinosaurs: async (ctx: Context) => {
     if (db.connected) {
-      logger.blueTimestamp("⚡ /api have a request!");
+      logger.blueTimestamp("⚡ /api has a request!");
       const dinosaurs = await db.list<DinosaurDbSchema[]>();
       if (dinosaurs) {
         successResponse<DinosaurDbSchema[]>(
@@ -81,10 +80,9 @@ export default {
     }
   },
 
-  getDinosaur: async (ctx: RouterContext<RouteParams, Record<string, any>>) => {
-    const slug = ctx.params.slug as string;
+  getDinosaur: async (ctx: Context) => {
+    const slug = ctx.state.params.slug;
     if (db.connected) {
-      //!
       const { response } = ctx;
       logger.blueTimestamp(`⚡ /api/${slug} has a request!`);
       const dinosaur = await db.listOneWithSlug<DinosaurDbSchema>(slug);
@@ -106,7 +104,7 @@ export default {
     }
   },
 
-  addDinosaur: async (ctx: RouterContext<RouteParams, Record<string, any>>) => {
+  addDinosaur: async <T>(ctx: Context) => {
     if (db.connected) {
       const { request, response } = ctx;
       if (!request.hasBody) {
@@ -131,7 +129,7 @@ export default {
                 }
               } else {
                 logger.red("❌ Slug in use!");
-                response.status = 406;
+                response.status = Status.NotAcceptable;
                 response.body = {
                   success: false,
                   data: "❌ Slug is in use!",
@@ -139,7 +137,7 @@ export default {
               }
             } else {
               console.log("❌ Validation failed!");
-              response.status = 406;
+              response.status = Status.NotAcceptable;
               response.body = {
                 success: false,
                 data:
@@ -147,8 +145,8 @@ export default {
               };
             }
           } catch (err) {
-            logger.red("❌ POST /api Not JSON");
-            response.status = 405;
+            logger.red("❌ POST /api Not JSON, Error:" + err);
+            response.status = Status.NotAcceptable;
             response.body = {
               success: false,
               data: "🧨 Not a proper JSON!",
@@ -156,7 +154,7 @@ export default {
           }
         } else {
           logger.red("❌ POST /api Not JSON");
-          response.status = 405;
+          response.status = Status.NotAcceptable;
           response.body = {
             success: false,
             data: "🧨 Not a JSON!",
@@ -164,21 +162,20 @@ export default {
         }
       }
     } else {
-      logger.red(`❌ POST /api *No database connection!*`),
-        ctx.response.body = {
-          success: false,
-          data: "❌ Router: No database connection!",
-        };
+      logger.red(`❌ POST /api *No database connection!*`);
+      ctx.response.status = Status.InternalServerError;
+      ctx.response.body = {
+        success: false,
+        data: "❌ Router: No database connection!",
+      };
     }
   },
 
-  deleteDinosaur: async (
-    ctx: RouterContext<RouteParams, Record<string, any>>,
-  ) => {
-    const slug = ctx.params.slug as string;
+  deleteDinosaur: async (ctx: Context) => {
+    const slug = ctx.state.params.slug;
     if (db.connected) {
       const { response } = ctx;
-      if (await db.slugExists(slug) === true) {
+      if (await db.slugExists(slug)) {
         console.log("true");
         const dinosaur = await db.remove(slug);
         logger.red(`🪂 /api/${slug} has been removed!`);
@@ -204,65 +201,5 @@ export default {
           data: "❌ Router: No database connection!",
         };
     }
-    /*
-    const filteredDinosaurs: Array<Dinosaur> = stubDinosaurs.filter(
-      (dinosaur: Dinosaur) => (dinosaur.id !== id),
-    );
-    if (filteredDinosaurs.length === stubDinosaurs.length) {
-      response.status = 404;
-      response.body = {
-        success: false,
-        msg: "Not found",
-      };
-    } else {
-      stubDinosaurs.splice(0, stubDinosaurs.length);
-      stubDinosaurs.push(...filteredDinosaurs);
-      response.status = 200;
-      response.body = {
-        success: true,
-        msg: `Dinosaur with id ${id} has been deleted`,
-      };
-    }
-    */
-  },
-
-  updateDinosaur: async (
-    ctx: RouterContext<RouteParams, Record<string, any>>,
-  ) => {
-    const { request, response } = ctx;
-    /*
-    const requestedDinosaur: Dinosaur | undefined = stubDinosaurs.find(
-      (dinosaur: Dinosaur) => dinosaur.id === id,
-    );
-    if (requestedDinosaur) {
-      const { value: updatedDinosaurBody } = await request.body();
-      const updatedDinosaurs: Array<Dinosaur> = stubDinosaurs.map(
-        (dinosaur: Dinosaur) => {
-          if (dinosaur.id === id) {
-            return {
-              ...dinosaur,
-              ...updatedDinosaurBody,
-            };
-          } else {
-            return dinosaur;
-          }
-        },
-      );
-
-      stubDinosaurs.splice(0, stubDinosaurs.length);
-      stubDinosaurs.push(...updatedDinosaurs);
-      response.status = 200;
-      response.body = {
-        success: true,
-        msg: `Dinosaur id ${id} updated`,
-      };
-    } else {
-      response.status = 404;
-      response.body = {
-        success: false,
-        msg: `Not Found`,
-      };
-    }
-    */
   },
 };

@@ -27,8 +27,10 @@ Package does not have any version locks in imports which means that things will 
 - [ ] Alpinejs
 
 
-#### For Heroku deploy
-- For non Heroku deployment leave HEROKUAPP_URL as undefined
+#### ENV for deploy
+- For local set LOCAL=true and DB_LOCAL=true. Default MongoDB installation does not require UN or PW for local connections.
+- For remote mongo set DB_LOCAL=false, undefined or remove completely.
+- For non Heroku deployment leave HEROKUAPP_URL as undefined.
 - Set Heroku environment variables (env.example).
 - Set Heroku app url.
-- Skip LOCAL or set it to false
+- For Heroku set LOCAL to false or remove it.

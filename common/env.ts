@@ -15,7 +15,7 @@ import { config, DotenvConfig } from "https://deno.land/x/dotenv/mod.ts";
 import * as logger from "./log.ts";
 
 export interface DbEnv {
-  SERVER: string;
+  MONGO_SERVER: string;
   UN: string;
   PW: string;
   DB: string;
@@ -28,12 +28,12 @@ export interface Env extends DbEnv {
 export type DbEnvErrors = Array<keyof DbEnv>;
 
 function createEmptyDBEnv(): DbEnv {
-  return { SERVER: "", UN: "", PW: "", DB: "" };
+  return { MONGO_SERVER: "", UN: "", PW: "", DB: "" };
 }
 export function parseDBEnv(): DbEnv {
   const errors: DbEnvErrors = [];
   let env: DotenvConfig | DbEnv = config();
-  if (env.SERVER === undefined) errors.push("SERVER");
+  if (env.MONGO_SERVER === undefined) errors.push("MONGO_SERVER");
   if (env.UN === undefined) errors.push("UN");
   if (env.PW === undefined) errors.push("PW");
   if (env.DB === undefined) errors.push("DB");
@@ -46,9 +46,9 @@ export function parseDBEnv(): DbEnv {
     ), errors.splice(0, errors.length);
     env = createEmptyDBEnv();
     let denoEnv = Deno.env.toObject();
-    if (Object.prototype.hasOwnProperty.call(denoEnv, "SERVER")) {
-      env.SERVER = denoEnv.SERVER;
-    } else errors.push("SERVER");
+    if (Object.prototype.hasOwnProperty.call(denoEnv, "MONGO_SERVER")) {
+      env.MONGO_SERVER = denoEnv.SERVER;
+    } else errors.push("MONGO_SERVER");
     if (Object.prototype.hasOwnProperty.call(denoEnv, "UN")) {
       env.UN = denoEnv.UN;
     } else errors.push("UN");
@@ -69,7 +69,7 @@ export function parseDBEnv(): DbEnv {
     }
   }
   logger.green("✔ Database environment variables ok!");
-  return { SERVER: env.SERVER, UN: env.UN, PW: env.PW, DB: env.DB };
+  return { MONGO_SERVER: env.MONGO_SERVER, UN: env.UN, PW: env.PW, DB: env.DB };
 }
 export function isLocal(): boolean | undefined {
   const env: DotenvConfig = config();
@@ -84,4 +84,7 @@ export function herokuUrl(): string | undefined {
     return denoEnv.HEROKUAPP_URL;
   }
   return;
+}
+export function dbLocal(): string | undefined {
+  return config().DB_LOCAL;
 }

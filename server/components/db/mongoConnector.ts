@@ -14,13 +14,16 @@ import {
   Database,
   Filter,
   MongoClient,
-} from "https://deno.land/x/mongo/mod.ts";
+} from "https://deno.land/x/mongo@v0.29.4/mod.ts";
 
 // TYPES
 import type { Dinosaur, DinosaurDbSchema, WithSlug } from "../types/types.d.ts";
 
 //LOGGER
 import * as logger from "../../../common/log.ts";
+
+//LOCAL DB
+import { dbLocal } from "../../../common/env.ts";
 
 export default class MongoDb<T> {
   #mongo = new MongoClient();
@@ -38,11 +41,25 @@ export default class MongoDb<T> {
 
   connect = async () => {
     try {
-      await this.#mongo.connect(
-        "mongodb+srv://" + this.username + ":" + this.password + "@" +
-          this.host + "/" + this.database +
-          "?retryWrites=true&w=majority&authMechanism=SCRAM-SHA-1",
-      );
+      if (dbLocal()) {
+        this.getSettings();
+        await this.#mongo.connect({
+          db: this.database,
+          tls: false,
+          servers: [
+            {
+              host: this.host,
+              port: 27017,
+            },
+          ],
+        });
+      } else {
+        await this.#mongo.connect(
+          "mongodb+srv://" + this.username + ":" + this.password + "@" +
+            this.host + "/" + this.database +
+            "?retryWrites=true&w=majority&authMechanism=SCRAM-SHA-1",
+        );
+      }
       this.#db = this.#mongo.database(this.database);
       this.#collection = this.#db.collection<T>("dinosaurs");
       logger.brightMagenta("⚓ Mongo online & database: " + this.database);
@@ -101,7 +118,7 @@ export default class MongoDb<T> {
     const slugExists = await dinosaurs.findOne({
       slug,
     }, { noCursorTimeout: false });
-    if (slugExists === null) {
+    if (!slugExists) {
       return;
     } else return true;
   };

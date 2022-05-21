@@ -10,6 +10,7 @@ U| |_| |\  | |    U| |\  |u.-,_| |_| | u___) |  / ___ \   | |_| |  |  _ <       
 
 // ROUTER
 import { Response, Router } from "https://deno.land/x/oak/mod.ts";
+//"https://deno.land/x/oak@v9.0.1/mod.ts";
 
 //LOG
 import { red } from "https://deno.land/std/fmt/colors.ts";
@@ -58,11 +59,13 @@ export default new Router()
     } catch (e) {
       errorResponse(e, ctx.response);
     }
-  })
-  .put("/:slug", async (ctx) => {
+  });
+/*
+	.put("/:slug", async (ctx) => {
     try {
       await dinosaursController.updateDinosaur(ctx);
     } catch (e) {
       errorResponse(e, ctx.response);
     }
   });
+*/
