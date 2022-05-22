@@ -41,17 +41,25 @@ export default class MongoDb<T> {
 
 	connect = async () => {
 		try {
-			this.getSettings();
-			await this.#mongo.connect({
-				db: this.database,
-				tls: false,
-				servers: [
-					{
-						host: this.host,
-						port: 27017,
-					},
-				],
-			});
+			if (dbLocal()) {
+				this.getSettings();
+				await this.#mongo.connect({
+					db: this.database,
+					tls: false,
+					servers: [
+						{
+							host: this.host,
+							port: 27017,
+						},
+					],
+				});
+			} else {
+				await this.#mongo.connect(
+					"mongodb+srv://" + this.username + ":" + this.password + "@" +
+					this.host + "/" + this.database +
+					"?retryWrites=true&w=majority&authMechanism=SCRAM-SHA-1",
+				);
+			}
 			this.#db = this.#mongo.database(this.database);
 			this.#collection = this.#db.collection<T>("dinosaurs");
 			logger.brightMagenta("⚓ Mongo online & database: " + this.database);
