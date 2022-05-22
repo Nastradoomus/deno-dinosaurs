@@ -57,7 +57,7 @@ export default class MongoDb<T> {
 				await this.#mongo.connect(
 					"mongodb+srv://" + this.username + ":" + this.password + "@" +
 					this.host + "/" + this.database +
-					"?retryWrites=true&w=majority&authMechanism=SCRAM-SHA-1",
+					"?retryWrites=true&w=majority",
 				);
 			}
 			this.#db = this.#mongo.database(this.database);
