@@ -14,7 +14,7 @@ import {
 	Database,
 	Filter,
 	MongoClient,
-} from "https://deno.land/x/mongo@v0.29.4/mod.ts";
+} from "https://deno.land/x/mongo@v0.30.0/mod.ts";
 
 // TYPES
 import type { Dinosaur, DinosaurDbSchema, WithSlug } from "../types/types.d.ts";
