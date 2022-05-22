@@ -37,10 +37,15 @@ export async function parseDBEnv(): Promise<DbEnv> {
 	let env: DbEnv = createEmptyDBEnv();
 
 	try {
-		env = await config() as unknown as DbEnv;
-	} catch (err) {
-		logger.bgRed("❌ Not using ENV file: " + err);
 		env = Deno.env.toObject() as unknown as DbEnv;
+		if (!Object.prototype.hasOwnProperty.call(env, "MONGO_SERVER")) errors.push("MONGO_SERVER");
+		if (!Object.prototype.hasOwnProperty.call(env, "UN")) errors.push("UN");
+		if (!Object.prototype.hasOwnProperty.call(env, "PW")) errors.push("PW");
+		if (!Object.prototype.hasOwnProperty.call(env, "DB")) errors.push("DB");
+		if (errors.length > 0) throw new Error;
+	} catch (err) {
+		logger.bgRed("❌ " + err + " Using ENV file");
+		env = await config() as unknown as DbEnv;
 	}
 
 	if (env.MONGO_SERVER === undefined) errors.push("MONGO_SERVER");
@@ -52,7 +57,7 @@ export async function parseDBEnv(): Promise<DbEnv> {
 			"❌ Missing following properties from .env: " + errors.join(),
 		);
 		logger.cyan(
-			"❎ Parsing global ENVIRONMENT variables (Heroku)",
+			"❎ Parsing global ENVIRONMENT variables",
 		), errors.splice(0, errors.length);
 		if (!Object.prototype.hasOwnProperty.call(env, "MONGO_SERVER")) errors.push("MONGO_SERVER");
 		if (!Object.prototype.hasOwnProperty.call(env, "UN")) errors.push("UN");
@@ -60,7 +65,7 @@ export async function parseDBEnv(): Promise<DbEnv> {
 		if (!Object.prototype.hasOwnProperty.call(env, "DB")) errors.push("DB");
 		if (errors.length > 0) {
 			logger.bgRed(
-				"❌ Missing following properties from global ENVIRONMENT variables (Heroku): " +
+				"❌ Missing following properties from global ENVIRONMENT variable: " +
 				errors.join(),
 			);
 			logger.bgRed("❌ Fix your MongoDB configuration.");
