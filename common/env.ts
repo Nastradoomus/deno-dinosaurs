@@ -9,7 +9,8 @@ U _____ u _   _  __     __
 */
 
 //ENV
-import { config, DotenvConfig } from "https://deno.land/x/dotenv@v3.2.0/mod.ts";
+import { config } from "https://deno.land/std@0.140.0/dotenv/mod.ts";
+
 
 //LOGGER
 import * as logger from "./log.ts";
@@ -31,12 +32,12 @@ export type DbEnvErrors = Array<keyof DbEnv>;
 function createEmptyDBEnv(): DbEnv {
 	return { MONGO_SERVER: "", UN: "", PW: "", DB: "" };
 }
-export function parseDBEnv(): DbEnv {
+export async function parseDBEnv(): Promise<DbEnv> {
 	const errors: DbEnvErrors = [];
 	let env: DbEnv = createEmptyDBEnv();
 
 	try {
-		env = config() as unknown as DbEnv;
+		env = await config() as unknown as DbEnv;
 	} catch (err) {
 		logger.bgRed("❌ Not using ENV file: " + err);
 		env = Deno.env.toObject() as unknown as DbEnv;
@@ -70,11 +71,13 @@ export function parseDBEnv(): DbEnv {
 	logger.green("✔ Database environment variables ok!");
 	return { MONGO_SERVER: env.MONGO_SERVER, UN: env.UN, PW: env.PW, DB: env.DB };
 }
-export function isLocal(): boolean | undefined {
+export async function isLocal(): Promise<boolean | undefined> {
 	try {
-		const env: DotenvConfig = config();
-		if (Object.prototype.hasOwnProperty.call(env, "LOCAL")) {
-			return (env.LOCAL === "true") ? true : false;
+		const env = await config();
+		if (env) {
+			if (Object.prototype.hasOwnProperty.call(env, "LOCAL")) {
+				return (env.LOCAL === "true") ? true : false;
+			}
 		}
 	} catch (err) {
 		logger.bgRed("❌ Not using ENV file: " + err);
@@ -89,6 +92,7 @@ export function herokuUrl(): string | undefined {
 	}
 	return;
 }
-export function dbLocal(): string | undefined {
-	return config().DB_LOCAL;
+export async function dbLocal(): Promise<string | undefined> {
+	const env = await config();
+	return await env.DB_LOCAL;
 }

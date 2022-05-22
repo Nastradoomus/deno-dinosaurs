@@ -41,7 +41,7 @@ export default class MongoDb<T> {
 
 	connect = async () => {
 		try {
-			if (dbLocal()) {
+			if (await dbLocal()) {
 				this.getSettings();
 				await this.#mongo.connect({
 					db: this.database,
@@ -72,7 +72,7 @@ export default class MongoDb<T> {
 
 	get connected(): true | undefined {
 		if (this.#db) return true;
-		return;
+		return undefined;
 	}
 
 	get dinosaurs(): Collection<T> | undefined {
@@ -83,7 +83,7 @@ export default class MongoDb<T> {
 		logger.yellow("Your Mongo data is:" + JSON.stringify(this, null, 2));
 	};
 
-	close = async () => this.#mongo.close();
+	close = () => this.#mongo.close();
 
 	list = async <T>(): Promise<T | undefined> => {
 		if (this.#db) {
@@ -128,7 +128,7 @@ export default class MongoDb<T> {
 		const { name, slug, description, image } = d;
 		const dinosaurs = this.#db.collection<DinosaurDbSchema>("dinosaurs");
 		try {
-			dinosaurs.insertOne({
+			await dinosaurs.insertOne({
 				name: name,
 				slug: slug,
 				description: description,
@@ -139,7 +139,7 @@ export default class MongoDb<T> {
 			);
 			return true;
 		} catch (e) {
-			logger.red("❌ Could not add a dinosaur to database!");
+			logger.red("❌ Could not add a dinosaur to database!" + e);
 		}
 		return;
 	};
@@ -148,13 +148,13 @@ export default class MongoDb<T> {
 		if (!this.#db) return;
 		const dinosaurs = this.#db.collection<DinosaurDbSchema>("dinosaurs");
 		try {
-			dinosaurs.deleteOne({
+			await dinosaurs.deleteOne({
 				slug: s,
 			});
 			logger.red("💔 Removed dinosaur with a slug " + s + " from database!");
 			return true;
 		} catch (e) {
-			logger.red("❌ Could not remove a dinosaur from database!");
+			logger.red("❌ Could not remove a dinosaur from database! " + e);
 		}
 		return;
 	};
